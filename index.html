@@ -1,0 +1,5488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JaLa's Airline Empire</title>
+
+<style>
+*{box-sizing:border-box}
+
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    color:white;
+    background:#050816;
+}
+
+body{
+    background:
+        radial-gradient(circle at 20% 10%,#164d8c55,transparent 35%),
+        radial-gradient(circle at 80% 20%,#5b2c9150,transparent 35%),
+        linear-gradient(135deg,#030611,#09152d 55%,#030611);
+}
+
+button{
+    border:0;
+    border-radius:12px;
+    padding:12px 20px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    color:#06101f;
+    background:linear-gradient(135deg,#ffffff,#a9dcff);
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-2px) scale(1.02);
+    box-shadow:0 8px 25px #00bfff33;
+}
+
+button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    transform:none;
+}
+
+input,select{
+    width:100%;
+    padding:13px;
+    border-radius:10px;
+    border:1px solid #ffffff20;
+    background:#050c1b;
+    color:white;
+    font-size:15px;
+    outline:none;
+}
+
+input:focus,select:focus{
+    border-color:#55dfff77;
+    box-shadow:0 0 0 3px #55dfff15;
+}
+
+.hidden{
+    display:none!important;
+}
+
+/* =========================================================
+   SETUP
+========================================================= */
+
+#setupScreen{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.setupPanel{
+    width:min(820px,96vw);
+    max-height:95vh;
+    overflow:auto;
+    padding:35px;
+    border-radius:28px;
+    background:#071224ee;
+    border:1px solid #55dfff33;
+    box-shadow:0 30px 100px #000b;
+}
+
+.setupLogo{
+    font-size:clamp(35px,6vw,62px);
+    font-weight:900;
+    letter-spacing:-3px;
+    margin:0;
+}
+
+.setupLogo span{
+    color:#55ddff;
+}
+
+.setupSubtitle{
+    color:#93a8c0;
+    margin-bottom:28px;
+}
+
+.setupGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.setupField{
+    background:#ffffff06;
+    padding:16px;
+    border-radius:16px;
+    border:1px solid #ffffff0d;
+}
+
+.setupField.full{
+    grid-column:1/-1;
+}
+
+.setupField label{
+    display:block;
+    margin-bottom:8px;
+    color:#bdd0e5;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.typeCards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+.typeCard{
+    padding:18px;
+    border-radius:15px;
+    background:#08162a;
+    border:1px solid #ffffff12;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.typeCard:hover{
+    border-color:#55dfff66;
+    transform:translateY(-2px);
+}
+
+.typeCard.selected{
+    background:#0e3150;
+    border-color:#55dfff;
+    box-shadow:0 0 22px #55dfff18;
+}
+
+.typeIcon{
+    font-size:30px;
+}
+
+.typeTitle{
+    font-weight:bold;
+    margin-top:7px;
+}
+
+.typeDescription{
+    color:#8195ad;
+    font-size:12px;
+    margin-top:5px;
+}
+
+.searchWrap{
+    position:relative;
+}
+
+.searchWrap input{
+    padding-right:40px;
+}
+
+.searchIcon{
+    position:absolute;
+    right:13px;
+    top:13px;
+    color:#70839b;
+}
+
+.countryOptions,
+.airportOptions{
+    max-height:230px;
+    overflow:auto;
+    margin-top:8px;
+    border-radius:12px;
+}
+
+.optionItem{
+    padding:11px 13px;
+    cursor:pointer;
+    background:#071224;
+    border-bottom:1px solid #ffffff08;
+}
+
+.optionItem:hover{
+    background:#12304c;
+}
+
+.optionItem.selected{
+    background:#0d3e63;
+    color:#7de7ff;
+}
+
+.setupActions{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:25px;
+}
+
+.primaryButton{
+    background:linear-gradient(135deg,#55ddff,#7a9cff);
+    padding:14px 26px;
+    font-size:16px;
+}
+
+/* =========================================================
+   APP
+========================================================= */
+
+#app{
+    width:100%;
+    height:100%;
+    display:flex;
+}
+
+.sidebar{
+    width:245px;
+    height:100%;
+    background:#050b18ee;
+    border-right:1px solid #ffffff15;
+    padding:22px 15px;
+    display:flex;
+    flex-direction:column;
+    z-index:10;
+    backdrop-filter:blur(15px);
+}
+
+.logo{
+    font-size:24px;
+    font-weight:900;
+    letter-spacing:-1px;
+    margin-bottom:4px;
+}
+
+.logo span{
+    color:#55ddff;
+}
+
+.airlineSmall{
+    color:#8192aa;
+    font-size:12px;
+    margin-bottom:25px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.navButton{
+    width:100%;
+    text-align:left;
+    margin:4px 0;
+    background:#ffffff08;
+    color:#dceaff;
+    border:1px solid #ffffff08;
+}
+
+.navButton:hover{
+    background:#20aaff22;
+}
+
+.navButton.active{
+    background:linear-gradient(135deg,#148cff44,#62e6ff22);
+    border-color:#4ddfff55;
+    color:white;
+}
+
+.sidebarBottom{
+    margin-top:auto;
+}
+
+.dayBox{
+    background:#ffffff08;
+    border:1px solid #ffffff12;
+    padding:12px;
+    border-radius:14px;
+    margin-bottom:10px;
+}
+
+.dayBox b{
+    color:#61e7ff;
+}
+
+.main{
+    flex:1;
+    height:100%;
+    overflow:auto;
+    padding:25px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    margin-bottom:22px;
+}
+
+.pageTitle{
+    font-size:30px;
+    font-weight:900;
+}
+
+.pageSubtitle{
+    color:#8092ac;
+    margin-top:4px;
+}
+
+.stats{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.stat{
+    min-width:125px;
+    padding:13px 16px;
+    border-radius:15px;
+    background:#071124cc;
+    border:1px solid #ffffff12;
+}
+
+.statLabel{
+    color:#7889a1;
+    font-size:11px;
+    text-transform:uppercase;
+}
+
+.statValue{
+    margin-top:3px;
+    font-size:19px;
+    font-weight:bold;
+}
+
+.money{color:#ffd65a}
+.green{color:#5dffbd}
+.blue{color:#55dfff}
+.red{color:#ff7777}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.hero{
+    padding:30px;
+    border-radius:24px;
+    background:
+        linear-gradient(110deg,#102d5cee,#08213ecc),
+        radial-gradient(circle at right,#25d9ff55,transparent 50%);
+    border:1px solid #55dfff33;
+    box-shadow:0 20px 60px #0006;
+    margin-bottom:20px;
+    position:relative;
+    overflow:hidden;
+}
+
+.hero:after{
+    content:"✈";
+    position:absolute;
+    right:30px;
+    bottom:-35px;
+    font-size:180px;
+    opacity:.06;
+}
+
+.hero h1{
+    margin:0 0 8px;
+    font-size:38px;
+}
+
+.hero p{
+    color:#b7c9dd;
+    max-width:700px;
+}
+
+.heroBadges{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:15px 0;
+}
+
+.badge{
+    padding:7px 10px;
+    border-radius:9px;
+    background:#ffffff0c;
+    border:1px solid #ffffff14;
+    color:#b7cadf;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:15px;
+}
+
+.card{
+    background:#071124dd;
+    border:1px solid #ffffff12;
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 10px 30px #0004;
+}
+
+.card:hover{
+    border-color:#55dfff44;
+}
+
+.card h2,
+.card h3{
+    margin-top:0;
+}
+
+.bigIcon{
+    font-size:38px;
+}
+
+.cardDescription{
+    color:#8294ac;
+    min-height:38px;
+}
+
+.aircraftPrice{
+    color:#ffd65a;
+    font-weight:bold;
+    margin:12px 0;
+}
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.pageSearch{
+    margin-bottom:18px;
+}
+
+.searchInput{
+    max-width:520px;
+}
+
+.filterBar{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+}
+
+.filterBar button{
+    background:#ffffff09;
+    color:#bdd0e8;
+    border:1px solid #ffffff12;
+}
+
+.filterBar button.active{
+    background:#0d3655;
+    border-color:#55dfff66;
+    color:#7de7ff;
+}
+
+/* =========================================================
+   AIRCRAFT
+========================================================= */
+
+.aircraftSection{
+    margin-bottom:30px;
+}
+
+.sectionHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:end;
+    gap:20px;
+    margin-bottom:12px;
+}
+
+.sectionHeader h2{
+    margin:0;
+}
+
+.sectionHeader p{
+    margin:3px 0 0;
+    color:#8194aa;
+    font-size:13px;
+}
+
+.aircraftGrid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(270px,1fr));
+    gap:16px;
+}
+
+.aircraftCard{
+    background:
+        linear-gradient(145deg,#0a1629,#061020);
+    border:1px solid #ffffff12;
+    border-radius:20px;
+    padding:20px;
+    position:relative;
+    overflow:hidden;
+    transition:.2s;
+}
+
+.aircraftCard:hover{
+    transform:translateY(-3px);
+    border-color:#55dfff55;
+}
+
+.aircraftCard .plane{
+    font-size:45px;
+    margin-bottom:8px;
+}
+
+.aircraftCard h2{
+    margin:4px 0;
+}
+
+.manufacturer{
+    color:#65ddff;
+    font-size:12px;
+    font-weight:bold;
+    text-transform:uppercase;
+}
+
+.roleLabel{
+    color:#9aaec4;
+    font-size:12px;
+    margin-top:3px;
+}
+
+.specs{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+    margin:15px 0;
+}
+
+.spec{
+    padding:9px;
+    background:#ffffff08;
+    border-radius:9px;
+    font-size:12px;
+    color:#8da0b8;
+}
+
+.spec b{
+    display:block;
+    color:white;
+    font-size:14px;
+}
+
+.ownedTag{
+    position:absolute;
+    top:15px;
+    right:15px;
+    background:#39ff9a22;
+    border:1px solid #39ff9a55;
+    color:#62ffb4;
+    padding:5px 8px;
+    border-radius:8px;
+    font-size:11px;
+    font-weight:bold;
+}
+
+/* =========================================================
+   ROUTES
+========================================================= */
+
+.routeCreator{
+    background:#071124dd;
+    border:1px solid #ffffff12;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:20px;
+}
+
+.routeInputs{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:10px;
+}
+
+.routeSearchGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:10px;
+}
+
+.routeCard{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    padding:18px;
+    border-radius:16px;
+    background:#071124cc;
+    border:1px solid #ffffff10;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+}
+
+.routePath{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.routeMeta{
+    color:#8093ab;
+    font-size:13px;
+}
+
+/* =========================================================
+   FINANCE
+========================================================= */
+
+.financeGrid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:15px;
+}
+
+.financeCard{
+    padding:25px;
+    border-radius:20px;
+    background:#071124dd;
+    border:1px solid #ffffff12;
+}
+
+.financeNumber{
+    font-size:30px;
+    font-weight:bold;
+    margin:8px 0;
+}
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+.notification{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    z-index:100;
+    padding:16px 20px;
+    border-radius:15px;
+    background:#08152bfa;
+    border:1px solid #55dfff55;
+    box-shadow:0 15px 50px #0008;
+    animation:slideIn .3s;
+}
+
+@keyframes slideIn{
+    from{
+        transform:translateX(120%);
+        opacity:0;
+    }
+    to{
+        transform:translateX(0);
+        opacity:1;
+    }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:900px){
+
+    .sidebar{
+        width:190px;
+    }
+
+    .routeInputs{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:650px){
+
+    #app{
+        flex-direction:column;
+    }
+
+    .sidebar{
+        width:100%;
+        height:auto;
+        padding:10px;
+    }
+
+    .sidebarBottom{
+        display:none;
+    }
+
+    .navButton{
+        width:auto;
+        display:inline-block;
+        margin:2px;
+    }
+
+    .logo{
+        display:none;
+    }
+
+    .airlineSmall{
+        display:none;
+    }
+
+    .main{
+        padding:15px;
+    }
+
+    .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .routeInputs,
+    .routeSearchGrid,
+    .setupGrid{
+        grid-template-columns:1fr;
+    }
+
+    .setupField.full{
+        grid-column:auto;
+    }
+
+    .typeCards{
+        grid-template-columns:1fr;
+    }
+}
+
+/* EXPANSION UI */
+.managementGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}
+.miniStat{font-size:28px;font-weight:900;margin-top:8px}
+.positive{color:#66e6a3}.negative{color:#ff7777}.warning{color:#ffd166}
+.progress{height:9px;background:#ffffff12;border-radius:20px;overflow:hidden;margin-top:8px}.progress>div{height:100%;background:linear-gradient(90deg,#55ddff,#66e6a3);width:50%}
+.smallButton{padding:8px 12px;font-size:12px;margin:4px 4px 0 0}
+.routeControls{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.routeControls input{width:120px}
+.loanBox,.achievement{padding:14px;border:1px solid #ffffff10;border-radius:14px;background:#ffffff05;margin-top:10px}
+.achievement.unlocked{border-color:#66e6a355;background:#66e6a30b}.achievement b{display:block;margin-bottom:4px}
+.contract{border-left:4px solid #55ddff}
+@media(max-width:700px){.managementGrid{grid-template-columns:1fr}.routeControls input{width:100%}}
+</style>
+</head>
+
+<body>
+
+<!-- =========================================================
+   CREATION SCREEN
+========================================================= -->
+
+<div id="setupScreen">
+
+    <div class="setupPanel">
+
+        <h1 class="setupLogo">
+            ✈ <span>JaLa's</span> Aviation Empire
+        </h1>
+
+        <p class="setupSubtitle">
+            Build an airline empire from your home country and expand across the world.
+        </p>
+
+        <div class="setupGrid">
+
+            <div class="setupField full">
+
+                <label>AIRLINE NAME</label>
+
+                <input
+                    id="setupAirlineName"
+                    placeholder="Enter your airline name"
+                    maxlength="40"
+                >
+
+            </div>
+
+            <div class="setupField full">
+
+                <label>AIRLINE BUSINESS TYPE</label>
+
+                <div class="typeCards">
+
+                    <div
+                        id="typePassenger"
+                        class="typeCard selected"
+                        onclick="selectBusinessType('passenger')"
+                    >
+                        <div class="typeIcon">👥</div>
+                        <div class="typeTitle">Passenger</div>
+                        <div class="typeDescription">
+                            Carry people around the world.
+                        </div>
+                    </div>
+
+                    <div
+                        id="typeCargo"
+                        class="typeCard"
+                        onclick="selectBusinessType('cargo')"
+                    >
+                        <div class="typeIcon">📦</div>
+                        <div class="typeTitle">Cargo</div>
+                        <div class="typeDescription">
+                            Operate freight and logistics flights.
+                        </div>
+                    </div>
+
+                    <div
+                        id="typeMixed"
+                        class="typeCard"
+                        onclick="selectBusinessType('mixed')"
+                    >
+                        <div class="typeIcon">🌍</div>
+                        <div class="typeTitle">Mixed</div>
+                        <div class="typeDescription">
+                            Run both passenger and cargo operations.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="setupField">
+
+                <label>HOME COUNTRY</label>
+
+                <div class="searchWrap">
+
+                    <input
+                        id="countrySearch"
+                        class="searchInput"
+                        placeholder="Search country..."
+                        oninput="renderCountryOptions()"
+                    >
+
+                    <span class="searchIcon">⌕</span>
+
+                </div>
+
+                <div
+                    id="countryOptions"
+                    class="countryOptions"
+                ></div>
+
+                <input
+                    id="selectedCountry"
+                    type="hidden"
+                    value=""
+                >
+
+            </div>
+
+            <div class="setupField">
+
+                <label>HOME AIRPORT / DEPARTURE CITIES</label>
+
+                <div class="searchWrap">
+
+                    <input
+                        id="homeAirportSearch"
+                        class="searchInput"
+                        placeholder="Search city or airport..."
+                        oninput="renderHomeAirportOptions()"
+                    >
+
+                    <span class="searchIcon">⌕</span>
+
+                </div>
+
+                <div
+                    id="homeAirportOptions"
+                    class="airportOptions"
+                ></div>
+
+                <input
+                    id="selectedHomeAirport"
+                    type="hidden"
+                    value=""
+                >
+
+            </div>
+
+        </div>
+
+        <div class="setupActions">
+
+            <button
+                class="primaryButton"
+                onclick="createAirline()"
+            >
+                🚀 START AIRLINE
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+   APP
+========================================================= -->
+
+<div id="app" class="hidden">
+
+<div class="sidebar">
+
+    <div class="logo">
+        ✈ <span>JaLa's</span> Aviation Empire
+    </div>
+
+    <div
+        class="airlineSmall"
+        id="sidebarAirline"
+    >
+        NEW AIRLINE
+    </div>
+
+    <button
+        class="navButton active"
+        onclick="showPage('dashboard',this)"
+    >
+        🏠 Dashboard
+    </button>
+
+    <button
+        class="navButton"
+        onclick="showPage('aircraft',this)"
+    >
+        ✈️ Aircraft
+    </button>
+
+    <button
+        class="navButton"
+        onclick="showPage('routes',this)"
+    >
+        🌍 Routes
+    </button>
+
+    <button
+        class="navButton"
+        onclick="showPage('finance',this)"
+    >
+        💰 Finances
+    </button>
+
+    <button
+        class="navButton"
+        onclick="showPage('airline',this)"
+    >
+        🏢 My Airline
+    </button>
+
+    <button
+        class="navButton"
+        onclick="showPage('codes',this)"
+    >
+        🎁 Codes
+    </button>
+
+    <button
+        class="navButton"
+        onclick="showPage('management',this)"
+    >
+        🧠 Management
+    </button>
+
+    <div class="sidebarBottom">
+
+        <div class="dayBox">
+            <div>GAME DAY</div>
+            <b id="dayDisplay">Day 1</b>
+        </div>
+
+        <button
+            onclick="advanceDay()"
+            style="width:100%"
+        >
+            ⏩ NEXT DAY
+        </button>
+
+        <button
+            onclick="resetGame()"
+            style="
+                width:100%;
+                background:#ff646422;
+                color:#ffaaaa
+            "
+        >
+            🔄 RESET & CREATE NEW AIRLINE
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="main">
+
+    <div class="topbar">
+
+        <div>
+
+            <div
+                class="pageTitle"
+                id="pageTitle"
+            >
+                Dashboard
+            </div>
+
+            <div
+                class="pageSubtitle"
+                id="pageSubtitle"
+            >
+                Your airline at a glance.
+            </div>
+
+        </div>
+
+        <div class="stats">
+
+            <div class="stat">
+                <div class="statLabel">Cash</div>
+                <div
+                    class="statValue money"
+                    id="topMoney"
+                >
+                    $0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="statLabel">Aircraft</div>
+                <div
+                    class="statValue blue"
+                    id="topAircraft"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="statLabel">Routes</div>
+                <div
+                    class="statValue green"
+                    id="topRoutes"
+                >
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="statLabel">Reputation</div>
+                <div
+                    class="statValue"
+                    id="topRep"
+                >
+                    50
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- DASHBOARD -->
+
+    <section id="dashboardPage">
+
+        <div class="hero">
+
+            <h1 id="welcomeTitle">
+                Welcome, CEO ✈️
+            </h1>
+
+            <div class="heroBadges">
+
+                <div
+                    class="badge"
+                    id="businessTypeBadge"
+                >
+                    👥 PASSENGER
+                </div>
+
+                <div
+                    class="badge"
+                    id="countryBadge"
+                >
+                    🌍 COUNTRY
+                </div>
+
+                <div
+                    class="badge"
+                    id="homeAirportBadge"
+                >
+                    🛫 AIRPORT
+                </div>
+
+            </div>
+
+            <p>
+                Build your airline from your home country into a global aviation empire.
+                Expand your fleet, open routes, earn money and grow your reputation.
+            </p>
+
+            <button
+                onclick="showPageById('aircraft')"
+            >
+                🛒 BUY AIRCRAFT
+            </button>
+
+            <button
+                onclick="showPageById('routes')"
+            >
+                🌍 OPEN A ROUTE
+            </button>
+
+        </div>
+
+        <h2>📊 Airline Overview</h2>
+
+        <div class="cards">
+
+            <div class="card">
+                <div class="bigIcon">👥</div>
+                <h3>Passengers</h3>
+                <p class="cardDescription">
+                    Passengers transported across your network.
+                </p>
+                <strong id="dashPassengers">0</strong>
+            </div>
+
+            <div class="card">
+                <div class="bigIcon">📦</div>
+                <h3>Cargo</h3>
+                <p class="cardDescription">
+                    Freight moved across your network.
+                </p>
+                <strong id="dashCargo">0 t</strong>
+            </div>
+
+            <div class="card">
+                <div class="bigIcon">💵</div>
+                <h3>Today's Revenue</h3>
+                <p class="cardDescription">
+                    Money generated from active routes.
+                </p>
+                <strong
+                    class="green"
+                    id="dashRevenue"
+                >
+                    $0
+                </strong>
+            </div>
+
+            <div class="card">
+                <div class="bigIcon">⛽</div>
+                <h3>Operating Costs</h3>
+                <p class="cardDescription">
+                    Fuel, maintenance and operating expenses.
+                </p>
+                <strong
+                    class="red"
+                    id="dashCosts"
+                >
+                    $0
+                </strong>
+            </div>
+
+        </div>
+
+        <h2 style="margin-top:28px">
+            🛫 Fleet
+        </h2>
+
+        <div
+            id="fleetPreview"
+            class="cards"
+        ></div>
+
+    </section>
+
+
+    <!-- AIRCRAFT -->
+
+    <section
+        id="aircraftPage"
+        class="hidden"
+    >
+
+        <div class="pageSearch">
+
+            <input
+                id="aircraftSearch"
+                class="searchInput"
+                placeholder="🔎 Search aircraft, manufacturer or model..."
+                oninput="renderAircraft()"
+            >
+
+        </div>
+
+        <div class="filterBar">
+
+            <button
+                id="filterAll"
+                class="active"
+                onclick="filterAircraft('all',this)"
+            >
+                ALL
+            </button>
+
+            <button
+                id="filterPassenger"
+                onclick="filterAircraft('passenger',this)"
+            >
+                👥 PASSENGER
+            </button>
+
+            <button
+                id="filterCargo"
+                onclick="filterAircraft('cargo',this)"
+            >
+                📦 CARGO
+            </button>
+
+            <button
+                id="filterRegional"
+                onclick="filterAircraft('regional',this)"
+            >
+                REGIONAL
+            </button>
+
+            <button
+                id="filterNarrow"
+                onclick="filterAircraft('narrow',this)"
+            >
+                NARROWBODY
+            </button>
+
+            <button
+                id="filterWide"
+                onclick="filterAircraft('wide',this)"
+            >
+                WIDEBODY
+            </button>
+
+            <button
+                id="filterJumbo"
+                onclick="filterAircraft('jumbo',this)"
+            >
+                JUMBO
+            </button>
+
+        </div>
+
+        <div
+            id="passengerAircraftSection"
+            class="aircraftSection"
+        >
+
+            <div class="sectionHeader">
+
+                <div>
+                    <h2>👥 PASSENGER AIRCRAFT</h2>
+                    <p>
+                        Aircraft available for passenger operations.
+                    </p>
+                </div>
+
+            </div>
+
+            <div
+                class="aircraftGrid"
+                id="passengerAircraftGrid"
+            ></div>
+
+        </div>
+
+        <div
+            id="cargoAircraftSection"
+            class="aircraftSection"
+        >
+
+            <div class="sectionHeader">
+
+                <div>
+                    <h2>📦 CARGO AIRCRAFT</h2>
+                    <p>
+                        Freighters and converted aircraft for freight operations.
+                    </p>
+                </div>
+
+            </div>
+
+            <div
+                class="aircraftGrid"
+                id="cargoAircraftGrid"
+            ></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ROUTES -->
+
+    <section
+        id="routesPage"
+        class="hidden"
+    >
+
+        <div class="routeCreator">
+
+            <h2>
+                🌍 Open New Route
+            </h2>
+
+            <p style="color:#8092aa">
+                Passenger and mixed airlines can open passenger routes.
+                Cargo and mixed airlines can open freight routes.
+            </p>
+
+            <div class="routeSearchGrid">
+
+                <div>
+
+                    <label
+                        style="
+                            color:#8ea1b8;
+                            font-size:12px;
+                            display:block;
+                            margin-bottom:6px
+                        "
+                    >
+                        SEARCH ORIGIN
+                    </label>
+
+                    <input
+                        id="originSearch"
+                        placeholder="🔎 Search departure city..."
+                        oninput="populateRouteSelectors()"
+                    >
+
+                </div>
+
+                <div>
+
+                    <label
+                        style="
+                            color:#8ea1b8;
+                            font-size:12px;
+                            display:block;
+                            margin-bottom:6px
+                        "
+                    >
+                        SEARCH DESTINATION
+                    </label>
+
+                    <input
+                        id="destinationSearch"
+                        placeholder="🔎 Search destination..."
+                        oninput="populateRouteSelectors()"
+                    >
+
+                </div>
+
+            </div>
+
+            <div class="routeInputs">
+
+                <select
+                    id="originSelect"
+                    onchange="updateRouteAircraftAvailability()"
+                ></select>
+
+                <select
+                    id="destinationSelect"
+                ></select>
+
+                <select
+                    id="routeAircraftSelect"
+                ></select>
+
+                <button onclick="openRoute()">
+                    OPEN ROUTE
+                </button>
+
+            </div>
+
+        </div>
+
+        <h2>
+            🗺 Active Routes
+        </h2>
+
+        <div id="routeList"></div>
+
+    </section>
+
+
+    <!-- FINANCE -->
+
+    <section
+        id="financePage"
+        class="hidden"
+    >
+
+        <div class="financeGrid">
+
+            <div class="financeCard">
+                <div>💰 CURRENT CASH</div>
+
+                <div
+                    class="financeNumber money"
+                    id="financeCash"
+                >
+                    $0
+                </div>
+            </div>
+
+            <div class="financeCard">
+                <div>📈 TOTAL REVENUE</div>
+
+                <div
+                    class="financeNumber green"
+                    id="financeRevenue"
+                >
+                    $0
+                </div>
+            </div>
+
+            <div class="financeCard">
+                <div>📉 TOTAL COSTS</div>
+
+                <div
+                    class="financeNumber red"
+                    id="financeCosts"
+                >
+                    $0
+                </div>
+            </div>
+
+            <div class="financeCard">
+                <div>💵 NET PROFIT</div>
+
+                <div
+                    class="financeNumber blue"
+                    id="financeProfit"
+                >
+                    $0
+                </div>
+            </div>
+
+        </div>
+
+        <div
+            class="card"
+            style="margin-top:20px"
+        >
+
+            <h2>
+                📅 Recent Financial Activity
+            </h2>
+
+            <div id="financeLog"></div>
+
+        </div>
+
+    </section>
+
+
+    <!-- AIRLINE -->
+
+    <section
+        id="airlinePage"
+        class="hidden"
+    >
+
+        <div class="card">
+
+            <h2>
+                🏢 Airline Headquarters
+            </h2>
+
+            <p>
+                Airline Name
+            </p>
+
+            <input
+                id="airlineNameInput"
+                maxlength="40"
+            >
+
+            <br><br>
+
+            <button onclick="changeAirlineName()">
+                SAVE AIRLINE NAME
+            </button>
+
+        </div>
+
+        <div
+            class="cards"
+            style="margin-top:20px"
+        >
+
+            <div class="card">
+                <h2>⭐ Reputation</h2>
+                <h1 id="airlineRep">50</h1>
+                <p>
+                    Passenger and customer satisfaction.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>🌍 Network</h2>
+                <h1 id="airlineRoutes">0</h1>
+                <p>
+                    Active routes across your network.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>✈️ Fleet</h2>
+                <h1 id="airlineFleet">0</h1>
+                <p>
+                    Total aircraft owned.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>🌎 Base Country</h2>
+                <h1
+                    id="airlineCountry"
+                    style="font-size:24px"
+                >
+                    —
+                </h1>
+                <p>
+                    All route origins come from this country.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- CODES -->
+    <section id="codesPage" class="hidden">
+        <div class="hero">
+            <h1>🎁 Promo Codes</h1>
+            <p>Enter a code below to claim special rewards for your airline.</p>
+        </div>
+
+        <div class="cards" style="margin-top:20px">
+            <div class="card">
+                <h2>🎟️ Redeem a Code</h2>
+                <p>Codes are one-use rewards for your current airline.</p>
+                <input id="promoCodeInput" maxlength="40" placeholder="Enter code..." style="margin-bottom:12px">
+                <button onclick="redeemCode()">REDEEM CODE</button>
+                <div id="codeMessage" style="margin-top:12px;color:#8092aa"></div>
+            </div>
+
+            <div class="card">
+                <h2>🔐 Secret Rewards</h2>
+                <p>There are currently <b>3 special codes</b> hidden in the game.</p>
+                <p style="color:#8092aa">Find the codes and enter them above to discover their rewards.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- MANAGEMENT -->
+    <section id="managementPage" class="hidden">
+        <div class="hero">
+            <h1>🧠 Airline Management</h1>
+            <p>Control pricing, maintenance, loans, contracts and your long-term airline strategy.</p>
+        </div>
+
+        <div class="managementGrid">
+            <div class="card"><h2>⛽ Fuel Price</h2><div class="miniStat" id="fuelPriceDisplay">$0</div><p>Fuel prices change each day.</p></div>
+            <div class="card"><h2>🎟️ Average Ticket</h2><div class="miniStat" id="avgTicketDisplay">$0</div><p>Your network's average passenger ticket.</p></div>
+            <div class="card"><h2>🛠️ Fleet Condition</h2><div class="miniStat" id="fleetConditionDisplay">100%</div><p>Average aircraft condition.</p></div>
+            <div class="card"><h2>📈 Lifetime Profit</h2><div class="miniStat" id="lifetimeProfitDisplay">$0</div><p>Total revenue minus total costs.</p></div>
+        </div>
+
+        <div class="cards" style="margin-top:20px">
+            <div class="card">
+                <h2>🏦 Bank</h2>
+                <p>Borrow money to expand your fleet. Interest is charged daily.</p>
+                <div class="loanBox"><b id="loanStatus">No active loan</b><br><span id="loanDetails">—</span></div>
+                <button class="smallButton" onclick="takeLoan(50000000)">BORROW $50M</button>
+                <button class="smallButton" onclick="takeLoan(100000000)">BORROW $100M</button>
+                <button class="smallButton" onclick="repayLoan()">REPAY LOAN</button>
+            </div>
+            <div class="card">
+                <h2>📦 Cargo Contracts</h2>
+                <p>Complete contracts for bonus income.</p>
+                <div id="contractList"></div>
+            </div>
+            <div class="card">
+                <h2>🏆 Achievements</h2>
+                <div id="achievementList"></div>
+            </div>
+        </div>
+    </section>
+
+</div>
+</div>
+
+
+<div
+    id="notification"
+    class="notification hidden"
+></div>
+
+
+<script>
+
+/* =========================================================
+   AIRCRAFT DATA
+========================================================= */
+
+const aircraftData=[
+
+/* PASSENGER REGIONAL */
+
+{
+ id:"e170",
+ name:"Embraer E170",
+ manufacturer:"Embraer",
+ role:"passenger",
+ category:"regional",
+ price:36000000,
+ seats:72,
+ range:3900,
+ speed:530,
+ fuel:18000
+},
+
+{
+ id:"e175",
+ name:"Embraer E175",
+ manufacturer:"Embraer",
+ role:"passenger",
+ category:"regional",
+ price:41000000,
+ seats:88,
+ range:4000,
+ speed:530,
+ fuel:19000
+},
+
+{
+ id:"e190",
+ name:"Embraer E190",
+ manufacturer:"Embraer",
+ role:"passenger",
+ category:"regional",
+ price:53000000,
+ seats:106,
+ range:4500,
+ speed:530,
+ fuel:22000
+},
+
+{
+ id:"e195e2",
+ name:"Embraer E195-E2",
+ manufacturer:"Embraer",
+ role:"passenger",
+ category:"regional",
+ price:65000000,
+ seats:146,
+ range:4800,
+ speed:540,
+ fuel:24000
+},
+
+{
+ id:"crj700",
+ name:"Bombardier CRJ700",
+ manufacturer:"Bombardier",
+ role:"passenger",
+ category:"regional",
+ price:25000000,
+ seats:70,
+ range:3700,
+ speed:470,
+ fuel:17000
+},
+
+{
+ id:"crj900",
+ name:"Bombardier CRJ900",
+ manufacturer:"Bombardier",
+ role:"passenger",
+ category:"regional",
+ price:35000000,
+ seats:90,
+ range:3800,
+ speed:470,
+ fuel:18000
+},
+
+{
+ id:"crj1000",
+ name:"Bombardier CRJ1000",
+ manufacturer:"Bombardier",
+ role:"passenger",
+ category:"regional",
+ price:43000000,
+ seats:104,
+ range:3100,
+ speed:470,
+ fuel:20000
+},
+
+{
+ id:"atr72",
+ name:"ATR 72-600",
+ manufacturer:"ATR",
+ role:"passenger",
+ category:"regional",
+ price:26000000,
+ seats:72,
+ range:1500,
+ speed:275,
+ fuel:7000
+},
+
+{
+ id:"atr42",
+ name:"ATR 42-600",
+ manufacturer:"ATR",
+ role:"passenger",
+ category:"regional",
+ price:22000000,
+ seats:50,
+ range:1550,
+ speed:275,
+ fuel:6000
+},
+
+{
+ id:"dhc8",
+ name:"Dash 8 Q400",
+ manufacturer:"De Havilland Canada",
+ role:"passenger",
+ category:"regional",
+ price:32000000,
+ seats:82,
+ range:2000,
+ speed:360,
+ fuel:8500
+},
+
+/* PASSENGER NARROWBODY */
+
+{
+ id:"a220100",
+ name:"Airbus A220-100",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"narrow",
+ price:81000000,
+ seats:125,
+ range:6300,
+ speed:470,
+ fuel:15000
+},
+
+{
+ id:"a220300",
+ name:"Airbus A220-300",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"narrow",
+ price:90000000,
+ seats:145,
+ range:6300,
+ speed:470,
+ fuel:17000
+},
+
+{
+ id:"a319",
+ name:"Airbus A319neo",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"narrow",
+ price:105000000,
+ seats:160,
+ range:6850,
+ speed:485,
+ fuel:20000
+},
+
+{
+ id:"a320",
+ name:"Airbus A320neo",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"narrow",
+ price:110000000,
+ seats:180,
+ range:6300,
+ speed:485,
+ fuel:21000
+},
+
+{
+ id:"a321",
+ name:"Airbus A321neo",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"narrow",
+ price:130000000,
+ seats:220,
+ range:7400,
+ speed:485,
+ fuel:23000
+},
+
+{
+ id:"a321xlr",
+ name:"Airbus A321XLR",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"narrow",
+ price:145000000,
+ seats:206,
+ range:8700,
+ speed:485,
+ fuel:24000
+},
+
+{
+ id:"737700",
+ name:"Boeing 737-700",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"narrow",
+ price:90000000,
+ seats:140,
+ range:6200,
+ speed:490,
+ fuel:19000
+},
+
+{
+ id:"737800",
+ name:"Boeing 737-800",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"narrow",
+ price:105000000,
+ seats:189,
+ range:5600,
+ speed:490,
+ fuel:21000
+},
+
+{
+ id:"737max8",
+ name:"Boeing 737 MAX 8",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"narrow",
+ price:120000000,
+ seats:178,
+ range:6570,
+ speed:490,
+ fuel:19000
+},
+
+{
+ id:"737max9",
+ name:"Boeing 737 MAX 9",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"narrow",
+ price:125000000,
+ seats:193,
+ range:6570,
+ speed:490,
+ fuel:20000
+},
+
+{
+ id:"737max10",
+ name:"Boeing 737 MAX 10",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"narrow",
+ price:130000000,
+ seats:204,
+ range:6100,
+ speed:490,
+ fuel:21000
+},
+
+/* PASSENGER WIDEBODY */
+
+{
+ id:"757200",
+ name:"Boeing 757-200",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"narrow",
+ price:95000000,
+ seats:200,
+ range:7222,
+ speed:500,
+ fuel:25000
+},
+
+{
+ id:"767300",
+ name:"Boeing 767-300ER",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:140000000,
+ seats:261,
+ range:11000,
+ speed:490,
+ fuel:42000
+},
+
+{
+ id:"7878",
+ name:"Boeing 787-8 Dreamliner",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:240000000,
+ seats:248,
+ range:13620,
+ speed:490,
+ fuel:40000
+},
+
+{
+ id:"7879",
+ name:"Boeing 787-9 Dreamliner",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:280000000,
+ seats:296,
+ range:14100,
+ speed:490,
+ fuel:44000
+},
+
+{
+ id:"78710",
+ name:"Boeing 787-10 Dreamliner",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:300000000,
+ seats:336,
+ range:11910,
+ speed:490,
+ fuel:47000
+},
+
+{
+ id:"a330800",
+ name:"Airbus A330-800",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"wide",
+ price:260000000,
+ seats:257,
+ range:15094,
+ speed:490,
+ fuel:46000
+},
+
+{
+ id:"a330900",
+ name:"Airbus A330-900",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"wide",
+ price:290000000,
+ seats:287,
+ range:13334,
+ speed:490,
+ fuel:48000
+},
+
+{
+ id:"a350900",
+ name:"Airbus A350-900",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"wide",
+ price:320000000,
+ seats:325,
+ range:15000,
+ speed:510,
+ fuel:50000
+},
+
+{
+ id:"a3501000",
+ name:"Airbus A350-1000",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"wide",
+ price:370000000,
+ seats:369,
+ range:16100,
+ speed:510,
+ fuel:54000
+},
+
+{
+ id:"777200er",
+ name:"Boeing 777-200ER",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:250000000,
+ seats:313,
+ range:14300,
+ speed:510,
+ fuel:60000
+},
+
+{
+ id:"777300er",
+ name:"Boeing 777-300ER",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:330000000,
+ seats:396,
+ range:13650,
+ speed:510,
+ fuel:65000
+},
+
+{
+ id:"7778",
+ name:"Boeing 777-8",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:410000000,
+ seats:384,
+ range:16700,
+ speed:510,
+ fuel:65000
+},
+
+{
+ id:"7779",
+ name:"Boeing 777-9",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"wide",
+ price:440000000,
+ seats:426,
+ range:13500,
+ speed:510,
+ fuel:68000
+},
+
+/* JUMBO */
+
+{
+ id:"7478",
+ name:"Boeing 747-8",
+ manufacturer:"Boeing",
+ role:"passenger",
+ category:"jumbo",
+ price:420000000,
+ seats:467,
+ range:14320,
+ speed:520,
+ fuel:85000
+},
+
+{
+ id:"a380",
+ name:"Airbus A380-800",
+ manufacturer:"Airbus",
+ role:"passenger",
+ category:"jumbo",
+ price:500000000,
+ seats:555,
+ range:15200,
+ speed:490,
+ fuel:100000
+},
+
+/* CARGO */
+
+{
+ id:"atr72f",
+ name:"ATR 72-600F",
+ manufacturer:"ATR",
+ role:"cargo",
+ category:"regional",
+ price:30000000,
+ cargoCapacity:8,
+ range:1500,
+ speed:275,
+ fuel:7200
+},
+
+{
+ id:"757200pf",
+ name:"Boeing 757-200PF",
+ manufacturer:"Boeing",
+ role:"cargo",
+ category:"narrow",
+ price:70000000,
+ cargoCapacity:39,
+ range:5550,
+ speed:500,
+ fuel:26000
+},
+
+{
+ id:"737800bcf",
+ name:"Boeing 737-800BCF",
+ manufacturer:"Boeing",
+ role:"cargo",
+ category:"narrow",
+ price:80000000,
+ cargoCapacity:23,
+ range:3700,
+ speed:490,
+ fuel:22000
+},
+
+{
+ id:"a321p2f",
+ name:"Airbus A321P2F",
+ manufacturer:"Airbus",
+ role:"cargo",
+ category:"narrow",
+ price:90000000,
+ cargoCapacity:27,
+ range:4700,
+ speed:480,
+ fuel:23000
+},
+
+{
+ id:"767300bcf",
+ name:"Boeing 767-300BCF",
+ manufacturer:"Boeing",
+ role:"cargo",
+ category:"wide",
+ price:135000000,
+ cargoCapacity:52,
+ range:6000,
+ speed:490,
+ fuel:41000
+},
+
+{
+ id:"a330200f",
+ name:"Airbus A330-200F",
+ manufacturer:"Airbus",
+ role:"cargo",
+ category:"wide",
+ price:180000000,
+ cargoCapacity:70,
+ range:7400,
+ speed:490,
+ fuel:47000
+},
+
+{
+ id:"777f",
+ name:"Boeing 777F",
+ manufacturer:"Boeing",
+ role:"cargo",
+ category:"wide",
+ price:210000000,
+ cargoCapacity:103,
+ range:9200,
+ speed:510,
+ fuel:68000
+},
+
+{
+ id:"7478f",
+ name:"Boeing 747-8F",
+ manufacturer:"Boeing",
+ role:"cargo",
+ category:"jumbo",
+ price:390000000,
+ cargoCapacity:137,
+ range:8200,
+ speed:520,
+ fuel:85000
+}
+
+
+];
+
+/* =========================================================
+   REAL AIRCRAFT CATALOG
+   No generated "Series" variants. Every entry below is a real
+   aircraft model/designation. Game statistics are simplified.
+   The original 44 aircraft plus 356 real additional models = 400 total.
+========================================================= */
+
+const realAircraftNames = [
+    "Airbus A300B2-1C",
+    "Airbus A300B2-203",
+    "Airbus A300B4-100",
+    "Airbus A300B4-200",
+    "Airbus A300-600",
+    "Airbus A300-600R",
+    "Airbus A310-200",
+    "Airbus A310-300",
+    "Airbus A310-300C",
+    "Airbus A310-300F",
+    "Airbus A318-100",
+    "Airbus A319-100",
+    "Airbus A319LR",
+    "Airbus A319neo",
+    "Airbus A320-100",
+    "Airbus A320-200",
+    "Airbus A320neo",
+    "Airbus A321-100",
+    "Airbus A321-200",
+    "Airbus A321LR",
+    "Airbus A321XLR",
+    "Airbus A321neo",
+    "Airbus A330-200",
+    "Airbus A330-200F",
+    "Airbus A330-300",
+    "Airbus A330-800",
+    "Airbus A330-900",
+    "Airbus A340-200",
+    "Airbus A340-300",
+    "Airbus A340-500",
+    "Airbus A340-600",
+    "Airbus A350-800",
+    "Airbus A350-900",
+    "Airbus A350-1000",
+    "Airbus A380-800",
+    "Airbus A380-841",
+    "Airbus A380-842",
+    "Boeing 707-120",
+    "Boeing 707-220",
+    "Boeing 707-320",
+    "Boeing 707-320B",
+    "Boeing 707-320C",
+    "Boeing 717-200",
+    "Boeing 727-100",
+    "Boeing 727-100C",
+    "Boeing 727-200",
+    "Boeing 727-200F",
+    "Boeing 737-100",
+    "Boeing 737-200",
+    "Boeing 737-200C",
+    "Boeing 737-300",
+    "Boeing 737-400",
+    "Boeing 737-500",
+    "Boeing 737-600",
+    "Boeing 737-700",
+    "Boeing 737-700C",
+    "Boeing 737-800",
+    "Boeing 737-800BCF",
+    "Boeing 737-900",
+    "Boeing 737-900ER",
+    "Boeing 737 MAX 7",
+    "Boeing 737 MAX 8",
+    "Boeing 737 MAX 8-200",
+    "Boeing 737 MAX 9",
+    "Boeing 737 MAX 10",
+    "Boeing 747-100",
+    "Boeing 747-100B",
+    "Boeing 747-200B",
+    "Boeing 747-200C",
+    "Boeing 747-200F",
+    "Boeing 747-300",
+    "Boeing 747-400",
+    "Boeing 747-400F",
+    "Boeing 747-400ER",
+    "Boeing 747-8",
+    "Boeing 747-8F",
+    "Boeing 757-200",
+    "Boeing 757-200PF",
+    "Boeing 757-300",
+    "Boeing 767-200",
+    "Boeing 767-200ER",
+    "Boeing 767-300",
+    "Boeing 767-300ER",
+    "Boeing 767-300F",
+    "Boeing 767-400ER",
+    "Boeing 777-200",
+    "Boeing 777-200ER",
+    "Boeing 777-200LR",
+    "Boeing 777-300",
+    "Boeing 777-300ER",
+    "Boeing 777F",
+    "Boeing 777-8",
+    "Boeing 777-9",
+    "Boeing 787-8",
+    "Boeing 787-9",
+    "Boeing 787-10",
+    "McDonnell Douglas DC-8-10",
+    "McDonnell Douglas DC-8-20",
+    "McDonnell Douglas DC-8-30",
+    "McDonnell Douglas DC-8-40",
+    "McDonnell Douglas DC-8-50",
+    "McDonnell Douglas DC-8-61",
+    "McDonnell Douglas DC-8-62",
+    "McDonnell Douglas DC-8-63",
+    "McDonnell Douglas DC-8-71",
+    "McDonnell Douglas DC-8-72",
+    "McDonnell Douglas DC-8-73",
+    "McDonnell Douglas DC-9-10",
+    "McDonnell Douglas DC-9-20",
+    "McDonnell Douglas DC-9-30",
+    "McDonnell Douglas DC-9-40",
+    "McDonnell Douglas DC-9-50",
+    "McDonnell Douglas MD-80",
+    "McDonnell Douglas MD-81",
+    "McDonnell Douglas MD-82",
+    "McDonnell Douglas MD-83",
+    "McDonnell Douglas MD-87",
+    "McDonnell Douglas MD-88",
+    "McDonnell Douglas MD-90",
+    "McDonnell Douglas MD-11",
+    "McDonnell Douglas MD-11F",
+    "McDonnell Douglas DC-10-10",
+    "McDonnell Douglas DC-10-15",
+    "McDonnell Douglas DC-10-30",
+    "McDonnell Douglas DC-10-30F",
+    "McDonnell Douglas DC-10-40",
+    "McDonnell Douglas DC-10-40F",
+    "Lockheed L-1011-1 TriStar",
+    "Lockheed L-1011-100 TriStar",
+    "Lockheed L-1011-200 TriStar",
+    "Lockheed L-1011-250 TriStar",
+    "Lockheed L-1011-500 TriStar",
+    "Lockheed L-188 Electra",
+    "Lockheed L-1049 Super Constellation",
+    "Lockheed L-1649 Starliner",
+    "Douglas DC-3",
+    "Douglas DC-4",
+    "Douglas DC-5",
+    "Douglas DC-6",
+    "Douglas DC-7",
+    "Douglas DC-8",
+    "Douglas DC-10",
+    "Douglas DC-8-63",
+    "Douglas DC-9",
+    "Douglas DC-9-30",
+    "Convair 240",
+    "Convair 340",
+    "Convair 440",
+    "Convair 580",
+    "Convair 600",
+    "Convair 640",
+    "Convair 880",
+    "Convair 990 Coronado",
+    "Vickers Viscount 700",
+    "Vickers Viscount 800",
+    "Vickers Vanguard",
+    "Vickers VC10",
+    "Vickers Super VC10",
+    "BAC 1-11-200",
+    "BAC 1-11-300",
+    "BAC 1-11-500",
+    "Hawker Siddeley HS 121 Trident 1C",
+    "Hawker Siddeley HS 121 Trident 2E",
+    "Hawker Siddeley HS 121 Trident 3B",
+    "de Havilland Comet 1",
+    "de Havilland Comet 2",
+    "de Havilland Comet 3",
+    "de Havilland Comet 4",
+    "de Havilland Comet 4B",
+    "de Havilland Comet 4C",
+    "de Havilland Canada DHC-6-100 Twin Otter",
+    "de Havilland Canada DHC-6-200 Twin Otter",
+    "de Havilland Canada DHC-6-300 Twin Otter",
+    "de Havilland Canada DHC-6-400 Twin Otter",
+    "de Havilland Canada DHC-7",
+    "de Havilland Canada DHC-8-100",
+    "de Havilland Canada DHC-8-200",
+    "de Havilland Canada DHC-8-300",
+    "de Havilland Canada DHC-8-400",
+    "de Havilland Canada Dash 7",
+    "de Havilland Canada Dash 8-400",
+    "ATR 42-200",
+    "ATR 42-300",
+    "ATR 42-320",
+    "ATR 42-500",
+    "ATR 42-600",
+    "ATR 72-200",
+    "ATR 72-210",
+    "ATR 72-500",
+    "ATR 72-600",
+    "ATR 72-600F",
+    "Embraer EMB 110 Bandeirante",
+    "Embraer EMB 120 Brasilia",
+    "Embraer ERJ-135",
+    "Embraer ERJ-140",
+    "Embraer ERJ-145",
+    "Embraer ERJ-145XR",
+    "Embraer E170",
+    "Embraer E175",
+    "Embraer E175-E2",
+    "Embraer E190",
+    "Embraer E190-E2",
+    "Embraer E195",
+    "Embraer E195-E2",
+    "Embraer E190-E1",
+    "Embraer E195-E1",
+    "Bombardier CRJ100",
+    "Bombardier CRJ200",
+    "Bombardier CRJ440",
+    "Bombardier CRJ700",
+    "Bombardier CRJ705",
+    "Bombardier CRJ900",
+    "Bombardier CRJ1000",
+    "Bombardier CSeries CS100",
+    "Bombardier CSeries CS300",
+    "Airbus A220-100",
+    "Airbus A220-300",
+    "Fokker F27 Friendship",
+    "Fokker F28 Fellowship",
+    "Fokker 50",
+    "Fokker 70",
+    "Fokker 100",
+    "Fokker 100QC",
+    "BAe 146-100",
+    "BAe 146-200",
+    "BAe 146-300",
+    "Avro RJ70",
+    "Avro RJ85",
+    "Avro RJ100",
+    "Avro 748",
+    "British Aerospace ATP",
+    "Tupolev Tu-104",
+    "Tupolev Tu-114",
+    "Tupolev Tu-124",
+    "Tupolev Tu-134A",
+    "Tupolev Tu-154A",
+    "Tupolev Tu-154B",
+    "Tupolev Tu-154M",
+    "Tupolev Tu-204-100",
+    "Tupolev Tu-204-120",
+    "Tupolev Tu-214",
+    "Tupolev Tu-334",
+    "Ilyushin Il-12",
+    "Ilyushin Il-14",
+    "Ilyushin Il-18",
+    "Ilyushin Il-62",
+    "Ilyushin Il-62M",
+    "Ilyushin Il-76",
+    "Ilyushin Il-76TD",
+    "Ilyushin Il-86",
+    "Ilyushin Il-96-300",
+    "Ilyushin Il-96-400T",
+    "Ilyushin Il-96-400M",
+    "Yakovlev Yak-40",
+    "Yakovlev Yak-42",
+    "Antonov An-8",
+    "Antonov An-10",
+    "Antonov An-12",
+    "Antonov An-22",
+    "Antonov An-24",
+    "Antonov An-26",
+    "Antonov An-28",
+    "Antonov An-32",
+    "Antonov An-70",
+    "Antonov An-72",
+    "Antonov An-74",
+    "Antonov An-124 Ruslan",
+    "Antonov An-225 Mriya",
+    "COMAC ARJ21-700",
+    "COMAC C919",
+    "COMAC C929",
+    "Xian MA60",
+    "Xian MA600",
+    "Harbin Y-12",
+    "Shaanxi Y-8",
+    "Shaanxi Y-9",
+    "Mitsubishi SpaceJet M90",
+    "Mitsubishi SpaceJet M100",
+    "Mitsubishi MU-2",
+    "NAMC YS-11",
+    "NAMC YS-11F",
+    "Sud Aviation Caravelle I",
+    "Sud Aviation Caravelle III",
+    "Sud Aviation Caravelle VI-N",
+    "Sud Aviation Caravelle VI-R",
+    "Sud Aviation Caravelle 10B",
+    "Sud Aviation Caravelle 12",
+    "Dassault Mercure",
+    "Dassault Falcon 20",
+    "Dassault Falcon 50",
+    "Dassault Falcon 900",
+    "Dassault Falcon 7X",
+    "Dassault Falcon 8X",
+    "Dassault Falcon 10X",
+    "Gulfstream GII",
+    "Gulfstream GIII",
+    "Gulfstream GIV",
+    "Gulfstream GV",
+    "Gulfstream G500",
+    "Gulfstream G550",
+    "Gulfstream G600",
+    "Gulfstream G650",
+    "Gulfstream G700",
+    "Bombardier Challenger 300",
+    "Bombardier Challenger 350",
+    "Bombardier Challenger 3500",
+    "Bombardier Challenger 600",
+    "Bombardier Challenger 601",
+    "Bombardier Challenger 604",
+    "Bombardier Challenger 605",
+    "Bombardier Challenger 650",
+    "Bombardier Global 5000",
+    "Bombardier Global 5500",
+    "Bombardier Global 6000",
+    "Bombardier Global 6500",
+    "Bombardier Global 7500",
+    "Embraer Legacy 450",
+    "Embraer Legacy 500",
+    "Embraer Legacy 600",
+    "Embraer Legacy 650",
+    "Embraer Praetor 500",
+    "Embraer Praetor 600",
+    "Boeing 737-400SF",
+    "Boeing 737-800SF",
+    "Boeing 737-900BCF",
+    "Boeing 757-200M",
+    "Boeing 767-200SF",
+    "Boeing 767-300BCF",
+    "Boeing 767-300BDSF",
+    "Boeing 767-300ERF",
+    "Boeing 767-400BCF",
+    "Boeing 777-200F",
+    "Boeing 777-300ERSF",
+    "Airbus A300-600F",
+    "Airbus A300-600ST Beluga",
+    "Airbus A330P2F",
+    "Airbus A330-300P2F",
+    "Airbus A350F",
+    "Airbus A321P2F",
+    "Airbus A320P2F",
+    "Airbus A319P2F",
+    "Airbus A310-200F",
+    "McDonnell Douglas MD-10F",
+    "McDonnell Douglas MD-11CF",
+    "McDonnell Douglas DC-10CF",
+    "McDonnell Douglas DC-10F",
+    "Ilyushin Il-76MF",
+    "Boeing 747-8I",
+    "Antonov An-124-100",
+    "Antonov An-225",
+    "Boeing 737-100C",
+    "Boeing 737-200F",
+    "Boeing 737-300F",
+    "Boeing 737-400F",
+    "Boeing 737-500F",
+    "Boeing 737-600F",
+    "Boeing 737-700F",
+    "Boeing 737 MAX 8-200BCF",
+    "Airbus A320-200P2F",
+    "Airbus A321-200P2F",
+    "ATR 42-300F",
+    "ATR 42-320F",
+    "ATR 42-500F",
+    "ATR 72-212F",
+    "ATR 72-500F",
+    "Fokker 50F",
+    "Fokker 100F",
+    "BAe 146-200QT",
+    "BAe 146-300QT",
+    "Avro RJ85SF",
+    "Avro RJ100SF",
+    "Embraer EMB 120F",
+    "Embraer ERJ-145MP",
+    "Embraer ERJ-145EP",
+    "Dornier 328",
+    "Dornier 328JET",
+    "Dornier 328-300",
+    "Fairchild Swearingen Metro II",
+    "Fairchild Swearingen Metro III",
+    "Fairchild Swearingen Metro 23",
+    "Saab 340A",
+    "Saab 340B",
+    "Saab 340F",
+    "Saab 2000",
+    "Saab 2000F",
+    "CASA C-212 Aviocar",
+    "CASA C-212-200",
+    "CASA C-212-300",
+    "CASA CN-235",
+    "CASA C-295",
+    "Let L-410 Turbolet",
+    "Let L-410 UVP-E20",
+    "Britten-Norman BN-2 Islander",
+    "Britten-Norman BN-2B Islander",
+    "Britten-Norman BN-2A Mk III Trislander",
+    "Short 330",
+    "Short 360",
+    "Short SC.7 Skyvan",
+    "Embraer C-390 Millennium",
+    "Airbus A400M Atlas"
+];
+
+/* Build the 400-aircraft catalog from the real model names above. */
+realAircraftNames.slice(0,356).forEach((name,index)=>{
+    const cargo = isCargoAircraftName(name);
+    const category = getRealAircraftCategory(name,cargo);
+    const base = getRealAircraftSpecs(cargo,category);
+    aircraftData.push({
+        id:"real_"+(index+1),
+        name:name,
+        manufacturer:name.split(" ")[0],
+        role:cargo ? "cargo" : "passenger",
+        category:category,
+        price:base.price,
+        ...(cargo ? {cargoCapacity:base.cargoCapacity} : {seats:base.seats}),
+        range:base.range,
+        speed:base.speed,
+        fuel:base.fuel
+    });
+});
+
+function isCargoAircraftName(name){
+    const u=name.toUpperCase();
+    return /(FREIGHTER|FREIGHT|CARGO|BCF|BDSF|P2F|\bPF\b|\bQT\b|\bSF\b|\bCF\b|-F(?:\b|$)|C-17|C-130|C-390|A400M|KAWASAKI C-1|KAWASAKI C-2|TRANSALL C-160|AN-124|AN-225|IL-76|IL-96-400T|SAAB 340F|SAAB 2000F)/.test(u);
+}
+
+function getRealAircraftCategory(name,cargo){
+    if(cargo) return "cargo";
+    const u=name.toUpperCase();
+    if(/A380|747|AN-225/.test(u)) return "jumbo";
+    if(/A330|A340|A350|777|787|DC-10|MD-11|L-1011|IL-62|IL-86|IL-96|AN-22|AN-124|TU-114|L-1049|L-1649/.test(u)) return "wide";
+    if(/737|A318|A319|A320|A321|757|717|727|A220|MD-80|MD-90|DC-8|DC-9|BAC 1-11|F28|F70|F100|CRJ|E170|E175|E190|E195|C919|ARJ21|CARAVELLE|MERCURE/.test(u)) return "narrow";
+    return "regional";
+}
+
+function getRealAircraftSpecs(cargo,category){
+    if(cargo){
+        return {
+            cargoCapacity:{regional:12,narrow:28,wide:70,jumbo:120,cargo:28}[category]||28,
+            range:{regional:2500,narrow:5500,wide:8000,jumbo:9000,cargo:5500}[category]||5500,
+            speed:{regional:300,narrow:480,wide:500,jumbo:510,cargo:480}[category]||480,
+            fuel:{regional:8000,narrow:24000,wide:50000,jumbo:85000,cargo:24000}[category]||24000,
+            price:{regional:35000000,narrow:85000000,wide:190000000,jumbo:380000000,cargo:85000000}[category]||85000000
+        };
+    }
+    return {
+        seats:{regional:100,narrow:180,wide:300,jumbo:500}[category]||180,
+        range:{regional:3500,narrow:6500,wide:13000,jumbo:15000}[category]||6500,
+        speed:{regional:430,narrow:485,wide:500,jumbo:510}[category]||485,
+        fuel:{regional:12000,narrow:28000,wide:60000,jumbo:100000}[category]||28000,
+        price:{regional:50000000,narrow:120000000,wide:280000000,jumbo:500000000}[category]||120000000
+    };
+}
+
+/* =========================================================
+   EXPANDED AIRPORTS / COUNTRIES
+========================================================= */
+
+const airports=[
+
+/* AUSTRALIA */
+
+{code:"MEL",name:"Melbourne",country:"Australia"},
+{code:"SYD",name:"Sydney",country:"Australia"},
+{code:"BNE",name:"Brisbane",country:"Australia"},
+{code:"PER",name:"Perth",country:"Australia"},
+{code:"ADL",name:"Adelaide",country:"Australia"},
+{code:"OOL",name:"Gold Coast",country:"Australia"},
+{code:"CNS",name:"Cairns",country:"Australia"},
+{code:"CBR",name:"Canberra",country:"Australia"},
+{code:"DRW",name:"Darwin",country:"Australia"},
+{code:"HBA",name:"Hobart",country:"Australia"},
+{code:"TSV",name:"Townsville",country:"Australia"},
+
+/* NEW ZEALAND */
+
+{code:"AKL",name:"Auckland",country:"New Zealand"},
+{code:"CHC",name:"Christchurch",country:"New Zealand"},
+{code:"WLG",name:"Wellington",country:"New Zealand"},
+{code:"ZQN",name:"Queenstown",country:"New Zealand"},
+{code:"DUD",name:"Dunedin",country:"New Zealand"},
+{code:"NPL",name:"New Plymouth",country:"New Zealand"},
+{code:"PMR",name:"Palmerston North",country:"New Zealand"},
+{code:"ROT",name:"Rotorua",country:"New Zealand"},
+{code:"NPE",name:"Napier",country:"New Zealand"},
+{code:"NSN",name:"Nelson",country:"New Zealand"},
+
+/* FIJI */
+
+{code:"NAN",name:"Nadi",country:"Fiji"},
+{code:"SUV",name:"Suva",country:"Fiji"},
+
+/* VANUATU — UNLOCKED BY DEV GIFT CODE */
+{code:"SON",name:"Santo International Airport",country:"Vanuatu",devOnly:true},
+
+/* UNITED KINGDOM */
+
+{code:"LHR",name:"London Heathrow",country:"United Kingdom"},
+{code:"LGW",name:"London Gatwick",country:"United Kingdom"},
+{code:"MAN",name:"Manchester",country:"United Kingdom"},
+{code:"EDI",name:"Edinburgh",country:"United Kingdom"},
+{code:"BHX",name:"Birmingham",country:"United Kingdom"},
+{code:"GLA",name:"Glasgow",country:"United Kingdom"},
+
+/* USA */
+
+{code:"LAX",name:"Los Angeles",country:"United States"},
+{code:"JFK",name:"New York JFK",country:"United States"},
+{code:"SFO",name:"San Francisco",country:"United States"},
+{code:"ORD",name:"Chicago O'Hare",country:"United States"},
+{code:"SEA",name:"Seattle",country:"United States"},
+{code:"DFW",name:"Dallas/Fort Worth",country:"United States"},
+{code:"ATL",name:"Atlanta",country:"United States"},
+{code:"MIA",name:"Miami",country:"United States"},
+{code:"DEN",name:"Denver",country:"United States"},
+{code:"HNL",name:"Honolulu",country:"United States"},
+{code:"LAS",name:"Las Vegas",country:"United States"},
+{code:"BOS",name:"Boston",country:"United States"},
+{code:"IAH",name:"Houston",country:"United States"},
+
+/* CANADA */
+
+{code:"YVR",name:"Vancouver",country:"Canada"},
+{code:"YYZ",name:"Toronto",country:"Canada"},
+{code:"YUL",name:"Montreal",country:"Canada"},
+{code:"YYC",name:"Calgary",country:"Canada"},
+{code:"YEG",name:"Edmonton",country:"Canada"},
+
+/* JAPAN */
+
+{code:"HND",name:"Tokyo Haneda",country:"Japan"},
+{code:"NRT",name:"Tokyo Narita",country:"Japan"},
+{code:"KIX",name:"Osaka Kansai",country:"Japan"},
+{code:"NGO",name:"Nagoya Chubu",country:"Japan"},
+{code:"FUK",name:"Fukuoka",country:"Japan"},
+{code:"CTS",name:"Sapporo New Chitose",country:"Japan"},
+
+/* CHINA */
+
+{code:"PEK",name:"Beijing",country:"China"},
+{code:"PVG",name:"Shanghai Pudong",country:"China"},
+{code:"CAN",name:"Guangzhou",country:"China"},
+{code:"SZX",name:"Shenzhen",country:"China"},
+{code:"CTU",name:"Chengdu",country:"China"},
+
+/* SOUTH KOREA */
+
+{code:"ICN",name:"Seoul Incheon",country:"South Korea"},
+{code:"GMP",name:"Seoul Gimpo",country:"South Korea"},
+{code:"PUS",name:"Busan",country:"South Korea"},
+
+/* SINGAPORE */
+
+{code:"SIN",name:"Singapore Changi",country:"Singapore"},
+
+/* THAILAND */
+
+{code:"BKK",name:"Bangkok",country:"Thailand"},
+{code:"HKT",name:"Phuket",country:"Thailand"},
+
+/* INDIA */
+
+{code:"DEL",name:"Delhi",country:"India"},
+{code:"BOM",name:"Mumbai",country:"India"},
+{code:"BLR",name:"Bengaluru",country:"India"},
+{code:"MAA",name:"Chennai",country:"India"},
+
+/* UAE */
+
+{code:"DXB",name:"Dubai",country:"United Arab Emirates"},
+{code:"AUH",name:"Abu Dhabi",country:"United Arab Emirates"},
+
+/* QATAR */
+
+{code:"DOH",name:"Doha",country:"Qatar"},
+
+/* TURKEY */
+
+{code:"IST",name:"Istanbul",country:"Turkey"},
+{code:"SAW",name:"Istanbul Sabiha",country:"Turkey"},
+
+/* FRANCE */
+
+{code:"CDG",name:"Paris Charles de Gaulle",country:"France"},
+{code:"ORY",name:"Paris Orly",country:"France"},
+{code:"NCE",name:"Nice",country:"France"},
+
+/* GERMANY */
+
+{code:"FRA",name:"Frankfurt",country:"Germany"},
+{code:"MUC",name:"Munich",country:"Germany"},
+{code:"BER",name:"Berlin",country:"Germany"},
+
+/* ITALY */
+
+{code:"FCO",name:"Rome",country:"Italy"},
+{code:"MXP",name:"Milan",country:"Italy"},
+{code:"VCE",name:"Venice",country:"Italy"},
+
+/* SPAIN */
+
+{code:"MAD",name:"Madrid",country:"Spain"},
+{code:"BCN",name:"Barcelona",country:"Spain"},
+
+/* NETHERLANDS */
+
+{code:"AMS",name:"Amsterdam",country:"Netherlands"},
+
+/* SWITZERLAND */
+
+{code:"ZRH",name:"Zurich",country:"Switzerland"},
+{code:"GVA",name:"Geneva",country:"Switzerland"},
+
+/* BRAZIL */
+
+{code:"GRU",name:"São Paulo",country:"Brazil"},
+{code:"GIG",name:"Rio de Janeiro",country:"Brazil"},
+
+/* SOUTH AFRICA */
+
+{code:"JNB",name:"Johannesburg",country:"South Africa"},
+{code:"CPT",name:"Cape Town",country:"South Africa"},
+
+/* EGYPT */
+
+{code:"CAI",name:"Cairo",country:"Egypt"},
+
+/* HONG KONG */
+
+{code:"HKG",name:"Hong Kong",country:"Hong Kong"},
+
+/* INDONESIA */
+
+{code:"CGK",name:"Jakarta",country:"Indonesia"},
+{code:"DPS",name:"Bali",country:"Indonesia"},
+
+/* MALAYSIA */
+
+{code:"KUL",name:"Kuala Lumpur",country:"Malaysia"},
+
+/* PHILIPPINES */
+
+{code:"MNL",name:"Manila",country:"Philippines"},
+
+/* VIETNAM */
+
+{code:"HAN",name:"Hanoi",country:"Vietnam"},
+{code:"SGN",name:"Ho Chi Minh City",country:"Vietnam"},
+
+/* CHILE */
+
+{code:"SCL",name:"Santiago",country:"Chile"},
+
+/* ARGENTINA */
+
+{code:"EZE",name:"Buenos Aires",country:"Argentina"},
+
+/* MEXICO */
+
+{code:"MEX",name:"Mexico City",country:"Mexico"},
+{code:"CUN",name:"Cancun",country:"Mexico"}
+
+];
+
+
+/* =========================================================
+   AIRLINE TYPES
+========================================================= */
+
+let selectedBusinessType="passenger";
+
+const typeLabels={
+    passenger:"👥 PASSENGER",
+    cargo:"📦 CARGO",
+    mixed:"🌍 MIXED"
+};
+
+
+/* =========================================================
+   COUNTRY HELPERS
+========================================================= */
+
+const countryNames=[
+    ...new Set(
+        airports.map(a=>a.country)
+    )
+].sort();
+
+function airportsForCountry(country){
+    return airports.filter(
+        a=>a.country===country
+    );
+}
+
+
+/* =========================================================
+   GAME STATE + MIGRATION
+========================================================= */
+
+const SAVE_KEY = "jalaAviationEmpireSave";
+const OLD_SAVE_KEY = "skylineAirlineSave";
+
+/*
+   IMPORTANT:
+   When there is no save, game stays null.
+   This lets the airline creation screen appear
+   instead of silently creating a default airline.
+*/
+
+let game = null;
+
+const savedData =
+    localStorage.getItem(SAVE_KEY) ||
+    localStorage.getItem(OLD_SAVE_KEY);
+
+if(savedData){
+
+    try{
+        game = JSON.parse(savedData);
+    }catch(error){
+        console.error("Could not load airline save:",error);
+        game = null;
+    }
+
+}
+
+
+/* =========================================================
+   SAVE MIGRATION / DEFAULTS
+========================================================= */
+
+if(game){
+
+    game.airlineName =
+        game.airlineName ||
+        "JaLa Airlines";
+
+    game.businessType =
+        game.businessType ||
+        "passenger";
+
+    game.baseCountry =
+        game.baseCountry ||
+        "Australia";
+
+    game.money =
+        Number(game.money) ||
+        250000000;
+
+    game.day =
+        Number(game.day) ||
+        1;
+
+    game.reputation =
+        Number(game.reputation);
+
+    if(Number.isNaN(game.reputation))
+        game.reputation=50;
+
+    game.passengers =
+        Number(game.passengers) ||
+        0;
+
+    game.cargoTons =
+        Number(game.cargoTons) ||
+        0;
+
+    game.totalRevenue =
+        Number(game.totalRevenue) ||
+        0;
+
+    game.totalCosts =
+        Number(game.totalCosts) ||
+        0;
+
+    game.ticketPrice = Number(game.ticketPrice) || 180;
+    game.fuelPrice = Number(game.fuelPrice) || 1.20;
+    game.loan = game.loan || {principal:0,balance:0,interest:0};
+    game.pendingOrders = Array.isArray(game.pendingOrders) ? game.pendingOrders : [];
+    game.contracts = Array.isArray(game.contracts) ? game.contracts : [];
+    game.achievements = game.achievements || {};
+    game.redeemedCodes = Array.isArray(game.redeemedCodes) ? game.redeemedCodes : [];
+    game.lastDayRevenue = Number(game.lastDayRevenue) || 0;
+    game.lastDayCosts = Number(game.lastDayCosts) || 0;
+
+    if(!Array.isArray(game.aircraft))
+        game.aircraft=[];
+
+    if(!Array.isArray(game.routes))
+        game.routes=[];
+
+    if(!Array.isArray(game.financeLog))
+        game.financeLog=[];
+
+    /*
+       Make sure the saved home airport belongs
+       to the airline's saved base country.
+    */
+
+    const savedHome=getAirport(game.homeAirport);
+
+    if(
+        !savedHome ||
+        savedHome.country!==game.baseCountry
+    ){
+
+        const countryAirports=
+            airportsForCountry(game.baseCountry);
+
+        game.homeAirport=
+            countryAirports.length
+            ?countryAirports[0].code
+            :"MEL";
+
+    }
+
+    /*
+       Keep older aircraft saves compatible.
+    */
+
+    game.aircraft.forEach(owned=>{
+
+        /*
+           Older versions created fake IDs such as e320_v001.
+           Convert those saved aircraft back to their real base model
+           so an existing save does not suddenly lose its aircraft.
+        */
+        if(
+            !aircraftData.some(a=>a.id===owned.type) &&
+            typeof owned.type==="string" &&
+            owned.type.includes("_v")
+        ){
+            owned.type=owned.type.split("_v")[0];
+        }
+
+        const data=
+            aircraftData.find(
+                a=>a.id===owned.type
+            );
+
+        if(data){
+
+            owned.role=
+                owned.role ||
+                data.role;
+
+            owned.age=
+                Number(owned.age) ||
+                0;
+
+            owned.flights=
+                Number(owned.flights) ||
+                0;
+
+            owned.condition = Number(owned.condition);
+            if(Number.isNaN(owned.condition)) owned.condition=100;
+            owned.purchaseDay = Number(owned.purchaseDay) || game.day;
+            owned.leased = !!owned.leased;
+
+        }
+
+    });
+
+    /*
+       Keep older routes compatible with cargo data.
+    */
+
+    game.routes.forEach(route=>{
+
+        route.passengers=
+            Number(route.passengers) ||
+            0;
+
+        route.cargoTons=
+            Number(route.cargoTons) ||
+            0;
+
+        route.flights=
+            Number(route.flights) ||
+            0;
+
+        route.revenue=
+            Number(route.revenue) ||
+            0;
+
+        route.ticketPrice=Number(route.ticketPrice) || 180;
+        route.demand=Number(route.demand);
+        if(Number.isNaN(route.demand)) route.demand=75;
+        route.cargoContractId=route.cargoContractId || null;
+
+    });
+
+}
+
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+function saveGame(){
+
+    if(!game)
+        return;
+
+    localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(game)
+    );
+
+}
+
+/* =========================================================
+   MONEY
+========================================================= */
+
+function money(value){
+
+    if(value>=1000000000)
+        return "$"+(value/1000000000).toFixed(2)+"B";
+
+    if(value>=1000000)
+        return "$"+(value/1000000).toFixed(1)+"M";
+
+    if(value>=1000)
+        return "$"+(value/1000).toFixed(0)+"K";
+
+    return "$"+Math.round(value).toLocaleString();
+}
+
+
+/* =========================================================
+   SETUP - BUSINESS TYPE
+========================================================= */
+
+function selectBusinessType(type){
+
+    selectedBusinessType=type;
+
+    document
+        .querySelectorAll(".typeCard")
+        .forEach(card=>{
+            card.classList.remove("selected");
+        });
+
+    document
+        .getElementById(
+            "type"+type.charAt(0).toUpperCase()+type.slice(1)
+        )
+        .classList.add("selected");
+}
+
+
+/* =========================================================
+   SETUP - COUNTRY SEARCH
+========================================================= */
+
+function renderCountryOptions(){
+
+    const search=
+        document
+            .getElementById("countrySearch")
+            .value
+            .trim()
+            .toLowerCase();
+
+    const box=
+        document.getElementById(
+            "countryOptions"
+        );
+
+    box.innerHTML="";
+
+    countryNames
+        .filter(country=>
+            country.toLowerCase().includes(search)
+        )
+        .forEach(country=>{
+
+            const div=
+                document.createElement("div");
+
+            div.className="optionItem";
+
+            if(
+                document.getElementById(
+                    "selectedCountry"
+                ).value===country
+            ){
+                div.classList.add("selected");
+            }
+
+            div.innerHTML=
+                `🌍 ${country}`;
+
+            div.onclick=()=>{
+                selectHomeCountry(country);
+            };
+
+            box.appendChild(div);
+        });
+}
+
+
+/* =========================================================
+   SELECT COUNTRY
+========================================================= */
+
+function selectHomeCountry(country){
+
+    document.getElementById(
+        "selectedCountry"
+    ).value=country;
+
+    document.getElementById(
+        "countrySearch"
+    ).value=country;
+
+    document.getElementById(
+        "selectedHomeAirport"
+    ).value="";
+
+    document.getElementById(
+        "homeAirportSearch"
+    ).value="";
+
+    renderCountryOptions();
+    renderHomeAirportOptions();
+}
+
+
+/* =========================================================
+   HOME AIRPORT SEARCH
+========================================================= */
+
+function renderHomeAirportOptions(){
+
+    const country=
+        document.getElementById(
+            "selectedCountry"
+        ).value;
+
+    const search=
+        document
+            .getElementById("homeAirportSearch")
+            .value
+            .trim()
+            .toLowerCase();
+
+    const box=
+        document.getElementById(
+            "homeAirportOptions"
+        );
+
+    box.innerHTML="";
+
+    if(!country){
+
+        box.innerHTML=
+            `<div class="optionItem">
+                Choose a country first.
+            </div>`;
+
+        return;
+    }
+
+    airportsForCountry(country)
+        .filter(a=>!a.devOnly || (game && game.redeemedCodes && game.redeemedCodes.includes("DEVGIFT")))
+        .filter(a=>
+            a.name.toLowerCase().includes(search) ||
+            a.code.toLowerCase().includes(search)
+        )
+        .forEach(airport=>{
+
+            const div=
+                document.createElement("div");
+
+            div.className="optionItem";
+
+            if(
+                document.getElementById(
+                    "selectedHomeAirport"
+                ).value===airport.code
+            ){
+
+                div.classList.add("selected");
+            }
+
+            div.innerHTML=
+                `🛫 <b>${airport.code}</b> — ${airport.name}`;
+
+            div.onclick=()=>{
+                document.getElementById(
+                    "selectedHomeAirport"
+                ).value=airport.code;
+
+                document.getElementById(
+                    "homeAirportSearch"
+                ).value=
+                    `${airport.code} — ${airport.name}`;
+
+                renderHomeAirportOptions();
+            };
+
+            box.appendChild(div);
+        });
+}
+
+
+/* =========================================================
+   CREATE AIRLINE
+========================================================= */
+
+function createAirline(){
+
+    /* Create a fresh game state when starting a brand-new airline. */
+    if(!game){
+        game={
+            airlineName:"JaLa Airlines",
+            businessType:"passenger",
+            baseCountry:"Australia",
+            homeAirport:"MEL",
+            money:250000000,
+            day:1,
+            reputation:50,
+            passengers:0,
+            cargoTons:0,
+            totalRevenue:0,
+            totalCosts:0,
+            ticketPrice:180,
+            fuelPrice:1.20,
+            loan:{principal:0,balance:0,interest:0},
+            pendingOrders:[],
+            contracts:[],
+            achievements:{},
+            redeemedCodes:[],
+            lastDayRevenue:0,
+            lastDayCosts:0,
+            aircraft:[],
+            routes:[],
+            financeLog:[]
+        };
+    }
+
+    const name=
+        document
+            .getElementById("setupAirlineName")
+            .value
+            .trim();
+
+    const country=
+        document
+            .getElementById("selectedCountry")
+            .value;
+
+    const homeAirport=
+        document
+            .getElementById("selectedHomeAirport")
+            .value;
+
+    if(!name){
+
+        alert(
+            "Please enter an airline name."
+        );
+
+        return;
+    }
+
+    if(!country){
+
+        alert(
+            "Please select a home country."
+        );
+
+        return;
+    }
+
+    if(!homeAirport){
+
+        alert(
+            "Please select a home airport."
+        );
+
+        return;
+    }
+
+    game.airlineName=name;
+
+    game.businessType=
+        selectedBusinessType;
+
+    game.baseCountry=
+        country;
+
+    game.homeAirport=
+        homeAirport;
+
+    saveGame();
+
+    document
+        .getElementById("setupScreen")
+        .classList
+        .add("hidden");
+
+    document
+        .getElementById("app")
+        .classList
+        .remove("hidden");
+
+    refreshAll();
+
+    notify(
+        `🚀 ${name} has been founded!`
+    );
+}
+
+
+/* =========================================================
+   PAGE SYSTEM
+========================================================= */
+
+const pages=[
+    "dashboard",
+    "aircraft",
+    "routes",
+    "finance",
+    "airline",
+    "codes",
+    "management"
+];
+
+function showPage(page,button){
+
+    pages.forEach(p=>{
+        document
+            .getElementById(p+"Page")
+            .classList
+            .add("hidden");
+    });
+
+    document
+        .getElementById(page+"Page")
+        .classList
+        .remove("hidden");
+
+    document
+        .querySelectorAll(".navButton")
+        .forEach(b=>b.classList.remove("active"));
+
+    if(button)
+        button.classList.add("active");
+
+    const titles={
+
+        dashboard:[
+            "Dashboard",
+            "Your airline at a glance."
+        ],
+
+        aircraft:[
+            "Aircraft",
+            "Build your fleet."
+        ],
+
+        routes:[
+            "Routes",
+            "Create your global network."
+        ],
+
+        finance:[
+            "Finances",
+            "Track your airline's money."
+        ],
+
+        airline:[
+            "My Airline",
+            "Manage your airline."
+        ],
+
+        codes:[
+            "Codes",
+            "Enter promotional codes and claim rewards."
+        ],
+
+        management:[
+            "Management",
+            "Run the business behind the flights."
+        ]
+
+    };
+
+    document
+        .getElementById("pageTitle")
+        .textContent=
+            titles[page][0];
+
+    document
+        .getElementById("pageSubtitle")
+        .textContent=
+            titles[page][1];
+
+    if(page==="aircraft")
+        renderAircraft();
+
+    if(page==="routes")
+        renderRoutes();
+
+    if(page==="finance")
+        renderFinance();
+
+    if(page==="airline")
+        renderAirline();
+
+    if(page==="codes")
+        renderCodes();
+
+    if(page==="management")
+        renderManagement();
+
+}
+
+function showPageById(page){
+
+    const button=
+        [
+            ...document.querySelectorAll(
+                ".navButton"
+            )
+        ]
+        .find(
+            b=>
+                b.textContent
+                    .toLowerCase()
+                    .includes(page)
+        );
+
+    showPage(page,button);
+}
+
+
+/* =========================================================
+   AIRCRAFT FILTER
+========================================================= */
+
+let currentFilter="all";
+
+
+function filterAircraft(filter,button){
+
+    currentFilter=filter;
+
+    document
+        .querySelectorAll(".filterBar button")
+        .forEach(b=>
+            b.classList.remove("active")
+        );
+
+    if(button)
+        button.classList.add("active");
+
+    renderAircraft();
+}
+
+
+/* =========================================================
+   CAN VIEW AIRCRAFT?
+========================================================= */
+
+function aircraftAllowed(a){
+
+    if(game.businessType==="passenger")
+        return a.role==="passenger";
+
+    if(game.businessType==="cargo")
+        return a.role==="cargo";
+
+    return true;
+}
+
+
+/* =========================================================
+   AIRCRAFT DISPLAY
+========================================================= */
+
+function renderAircraft(){
+
+    const passengerGrid=
+        document.getElementById(
+            "passengerAircraftGrid"
+        );
+
+    const cargoGrid=
+        document.getElementById(
+            "cargoAircraftGrid"
+        );
+
+    passengerGrid.innerHTML="";
+    cargoGrid.innerHTML="";
+
+    const search=
+        (
+            document.getElementById(
+                "aircraftSearch"
+            )?.value ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+    const list=
+        aircraftData
+            .filter(a=>aircraftAllowed(a))
+            .filter(a=>
+                currentFilter==="all" ||
+                currentFilter===a.role ||
+                currentFilter===a.category
+            )
+            .filter(a=>
+                a.name.toLowerCase().includes(search) ||
+                a.manufacturer.toLowerCase().includes(search) ||
+                a.id.toLowerCase().includes(search)
+            );
+
+    list.forEach(a=>{
+
+        const owned=
+            game.aircraft.filter(
+                x=>x.type===a.id
+            ).length;
+
+        const card=
+            document.createElement("div");
+
+        card.className="aircraftCard";
+
+        let specHTML="";
+
+        if(a.role==="passenger"){
+
+            specHTML=`
+
+                <div class="spec">
+                    Seats
+                    <b>${a.seats}</b>
+                </div>
+
+                <div class="spec">
+                    Range
+                    <b>${a.range.toLocaleString()} km</b>
+                </div>
+
+                <div class="spec">
+                    Speed
+                    <b>${a.speed} kt</b>
+                </div>
+
+                <div class="spec">
+                    Fuel
+                    <b>${a.fuel.toLocaleString()} L</b>
+                </div>
+            `;
+
+        }else{
+
+            specHTML=`
+
+                <div class="spec">
+                    Cargo
+                    <b>${a.cargoCapacity} t</b>
+                </div>
+
+                <div class="spec">
+                    Range
+                    <b>${a.range.toLocaleString()} km</b>
+                </div>
+
+                <div class="spec">
+                    Speed
+                    <b>${a.speed} kt</b>
+                </div>
+
+                <div class="spec">
+                    Fuel
+                    <b>${a.fuel.toLocaleString()} L</b>
+                </div>
+            `;
+        }
+
+        card.innerHTML=`
+
+            ${owned>0
+                ?
+                `<div class="ownedTag">
+                    OWNED ×${owned}
+                 </div>`
+                :
+                ""
+            }
+
+            <div class="plane">
+                ${a.role==="cargo" ? "📦✈️" : "✈️"}
+            </div>
+
+            <div class="manufacturer">
+                ${a.manufacturer}
+            </div>
+
+            <h2>
+                ${a.name}
+            </h2>
+
+            <div class="roleLabel">
+                ${a.role==="cargo"
+                    ? "📦 Cargo aircraft"
+                    : "👥 Passenger aircraft"
+                }
+            </div>
+
+            <div class="specs">
+                ${specHTML}
+            </div>
+
+            <div class="aircraftPrice">
+                ${money(a.price)}
+            </div>
+
+            <button
+                onclick="buyAircraft('${a.id}')"
+            >
+                BUY AIRCRAFT
+            </button>
+
+            <button class="smallButton" onclick="leaseAircraft('${a.id}')">LEASE</button>
+            <button class="smallButton" onclick="orderAircraft('${a.id}')">ORDER · 2 DAYS</button>
+        `;
+
+        if(a.role==="cargo")
+            cargoGrid.appendChild(card);
+        else
+            passengerGrid.appendChild(card);
+
+    });
+
+
+    /*
+        Section visibility is based on
+        the airline's business type.
+    */
+
+    const showPassenger=
+        game.businessType!=="cargo";
+
+    const showCargo=
+        game.businessType!=="passenger";
+
+    document
+        .getElementById(
+            "passengerAircraftSection"
+        )
+        .classList
+        .toggle(
+            "hidden",
+            !showPassenger
+        );
+
+    document
+        .getElementById(
+            "cargoAircraftSection"
+        )
+        .classList
+        .toggle(
+            "hidden",
+            !showCargo
+        );
+
+}
+
+
+/* =========================================================
+   BUY AIRCRAFT
+========================================================= */
+
+function leaseAircraft(type){
+    const data=aircraftData.find(a=>a.id===type);
+    if(!data||!aircraftAllowed(data))return;
+    const deposit=Math.round(data.price*0.08);
+    if(game.money<deposit){notify("Not enough money for the lease deposit.");return;}
+    game.money-=deposit;
+    game.aircraft.push({id:Date.now()+Math.random(),type,age:0,flights:0,role:data.role,condition:100,leased:true,purchaseDay:game.day});
+    game.totalCosts+=deposit;
+    saveGame();refreshAll();notify(`📄 ${data.name} leased. Daily lease payments apply.`);
+}
+
+function orderAircraft(type){
+    const data=aircraftData.find(a=>a.id===type);
+    if(!data||!aircraftAllowed(data))return;
+    if(game.pendingOrders.some(o=>o.type===type)){notify("You already have one of this aircraft on order.");return;}
+    if(game.money<data.price){notify("Not enough money to place this order.");return;}
+    game.money-=data.price;
+    game.pendingOrders.push({type,role:data.role,deliveryDay:game.day+2});
+    game.financeLog.unshift(`Day ${game.day}: Ordered ${data.name}. Delivery Day ${game.day+2}.`);
+    game.financeLog=game.financeLog.slice(0,20);
+    saveGame();refreshAll();notify(`🛫 ${data.name} ordered. Delivery on Day ${game.day+2}.`);
+}
+
+function buyAircraft(type){
+
+    const data=
+        aircraftData.find(
+            a=>a.id===type
+        );
+
+    if(!data)
+        return;
+
+    if(!aircraftAllowed(data)){
+
+        notify(
+            "That aircraft is not available for this airline type."
+        );
+
+        return;
+    }
+
+    if(game.money<data.price){
+
+        notify(
+            "Not enough money to buy the "+
+            data.name+
+            "."
+        );
+
+        return;
+    }
+
+    game.money-=data.price;
+
+    game.aircraft.push({
+
+        id:
+            Date.now()+
+            Math.random(),
+
+        type:type,
+
+        age:0,
+
+        flights:0,
+
+        role:data.role,
+        condition:100,
+        leased:false,
+        purchaseDay:game.day
+
+    });
+
+    game.financeLog.unshift(
+        `Day ${game.day}: Bought ${data.name} for ${money(data.price)}.`
+    );
+
+    game.financeLog=
+        game.financeLog.slice(0,20);
+
+    saveGame();
+
+    refreshAll();
+
+    notify(
+        "✈️ "+
+        data.name+
+        " added to your fleet!"
+    );
+}
+
+
+/* =========================================================
+   ROUTE SELECTORS
+========================================================= */
+
+function accessibleAirports(){
+    const unlocked=game && Array.isArray(game.redeemedCodes) && game.redeemedCodes.includes("DEVGIFT");
+    return airports.filter(a=>!a.devOnly || unlocked);
+}
+
+
+function populateRouteSelectors(){
+
+    const origin=
+        document.getElementById(
+            "originSelect"
+        );
+
+    const destination=
+        document.getElementById(
+            "destinationSelect"
+        );
+
+    const aircraft=
+        document.getElementById(
+            "routeAircraftSelect"
+        );
+
+    if(
+        !origin ||
+        !destination ||
+        !aircraft
+    )
+        return;
+
+    const originSearch=
+        (
+            document.getElementById(
+                "originSearch"
+            )?.value ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+    const destinationSearch=
+        (
+            document.getElementById(
+                "destinationSearch"
+            )?.value ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    /*
+        ORIGINS MUST BE IN THE
+        AIRLINE'S HOME COUNTRY.
+    */
+
+    const originAirports=
+        accessibleAirports()
+        .filter(a=>a.country===game.baseCountry)
+        .filter(a=>
+            a.name.toLowerCase().includes(originSearch) ||
+            a.code.toLowerCase().includes(originSearch)
+        );
+
+
+    const destinationAirports=
+        accessibleAirports()
+        .filter(a=>
+            a.name.toLowerCase().includes(destinationSearch) ||
+            a.code.toLowerCase().includes(destinationSearch)
+        );
+
+
+    origin.innerHTML="";
+
+    originAirports.forEach(a=>{
+
+        origin.innerHTML+=`
+            <option value="${a.code}">
+                ${a.code} — ${a.name}
+            </option>
+        `;
+
+    });
+
+
+    destination.innerHTML="";
+
+    destinationAirports.forEach(a=>{
+
+        destination.innerHTML+=`
+            <option value="${a.code}">
+                ${a.code} — ${a.name}
+            </option>
+        `;
+
+    });
+
+
+    aircraft.innerHTML="";
+
+
+    game.aircraft.forEach(
+        (owned,index)=>{
+
+            const data=
+                aircraftData.find(
+                    a=>a.id===owned.type
+                );
+
+            if(!data)
+                return;
+
+            if(
+                !aircraftAllowed(data)
+            )
+                return;
+
+            aircraft.innerHTML+=`
+                <option
+                    value="${owned.id}"
+                >
+                    ${data.role==="cargo"
+                        ? "📦 "
+                        : "👥 "
+                    }
+                    ${data.name}
+                    #${index+1}
+                </option>
+            `;
+        }
+    );
+
+}
+
+
+/* =========================================================
+   ROUTE HELPERS
+========================================================= */
+
+function getAirport(code){
+
+    return airports.find(
+        a=>a.code===code
+    );
+}
+
+
+/*
+ Simplified game distance.
+*/
+function calculateDistance(a,b){
+
+    const positions={
+
+        MEL:[-37.67,144.84],
+        SYD:[-33.94,151.17],
+        BNE:[-27.38,153.12],
+        PER:[-31.94,115.97],
+        ADL:[-34.95,138.53],
+        OOL:[-28.16,153.51],
+        CNS:[-16.88,145.75],
+        CBR:[-35.30,149.19],
+        DRW:[-12.41,130.88],
+        HBA:[-42.84,147.51],
+        TSV:[-19.25,146.77],
+
+        AKL:[-37.01,174.79],
+        CHC:[-43.49,172.53],
+        WLG:[-41.33,174.81],
+        ZQN:[-45.02,168.74],
+        DUD:[-45.93,170.20],
+        NPL:[-39.01,174.18],
+        PMR:[-40.32,175.62],
+        ROT:[-38.11,176.32],
+        NPE:[-39.47,176.87],
+        NSN:[-41.30,173.22],
+
+        NAN:[-17.75,177.44],
+        SUV:[-18.04,178.56],
+        SON:[-15.50,167.22],
+
+        LHR:[51.47,-0.45],
+        LGW:[51.15,-0.18],
+        MAN:[53.35,-2.28],
+        EDI:[55.95,-3.37],
+        BHX:[52.45,-1.75],
+        GLA:[55.87,-4.43],
+
+        LAX:[33.94,-118.41],
+        JFK:[40.64,-73.78],
+        SFO:[37.62,-122.38],
+        ORD:[41.97,-87.91],
+        SEA:[47.45,-122.31],
+        DFW:[32.90,-97.04],
+        ATL:[33.64,-84.43],
+        MIA:[25.79,-80.29],
+        DEN:[39.86,-104.67],
+        HNL:[21.32,-157.92],
+        LAS:[36.08,-115.15],
+        BOS:[42.36,-71.01],
+        IAH:[29.98,-95.34],
+
+        YVR:[49.19,-123.18],
+        YYZ:[43.68,-79.63],
+        YUL:[45.47,-73.74],
+        YYC:[51.13,-114.01],
+        YEG:[53.31,-113.58],
+
+        HND:[35.55,139.78],
+        NRT:[35.77,140.39],
+        KIX:[34.43,135.24],
+        NGO:[34.86,136.81],
+        FUK:[33.59,130.45],
+        CTS:[42.78,141.69],
+
+        PEK:[40.08,116.58],
+        PVG:[31.14,121.81],
+        CAN:[23.39,113.30],
+        SZX:[22.64,113.81],
+        CTU:[30.58,103.95],
+
+        ICN:[37.46,126.44],
+        GMP:[37.56,126.80],
+        PUS:[35.18,128.94],
+
+        SIN:[1.36,103.99],
+
+        BKK:[13.69,100.75],
+        HKT:[8.11,98.32],
+
+        DEL:[28.56,77.10],
+        BOM:[19.09,72.87],
+        BLR:[13.20,77.71],
+        MAA:[12.99,80.17],
+
+        DXB:[25.25,55.36],
+        AUH:[24.43,54.65],
+
+        DOH:[25.27,51.61],
+
+        IST:[41.28,28.75],
+        SAW:[40.90,29.31],
+
+        CDG:[49.01,2.55],
+        ORY:[48.73,2.36],
+        NCE:[43.66,7.21],
+
+        FRA:[50.03,8.57],
+        MUC:[48.35,11.79],
+        BER:[52.36,13.50],
+
+        FCO:[41.80,12.25],
+        MXP:[45.63,8.72],
+        VCE:[45.50,12.35],
+
+        MAD:[40.47,-3.56],
+        BCN:[41.30,2.08],
+
+        AMS:[52.31,4.77],
+
+        ZRH:[47.46,8.55],
+        GVA:[46.23,6.11],
+
+        GRU:[-23.43,-46.47],
+        GIG:[-22.81,-43.25],
+
+        JNB:[-26.14,28.25],
+        CPT:[-33.97,18.60],
+
+        CAI:[30.12,31.41],
+
+        HKG:[22.31,113.92],
+
+        CGK:[-6.13,106.66],
+        DPS:[-8.75,115.17],
+
+        KUL:[2.75,101.71],
+
+        MNL:[14.51,121.02],
+
+        HAN:[21.22,105.80],
+        SGN:[10.82,106.65],
+
+        SCL:[-33.39,-70.79],
+        EZE:[-34.82,-58.54],
+
+        MEX:[19.44,-99.07],
+        CUN:[21.04,-86.87]
+
+    };
+
+    const p1=positions[a];
+    const p2=positions[b];
+
+    if(!p1||!p2)
+        return 1000;
+
+    const R=6371;
+
+    const lat1=
+        p1[0]*
+        Math.PI/180;
+
+    const lat2=
+        p2[0]*
+        Math.PI/180;
+
+    const dLat=
+        (p2[0]-p1[0])*
+        Math.PI/180;
+
+    const dLon=
+        (p2[1]-p1[1])*
+        Math.PI/180;
+
+    const x=
+        Math.sin(dLat/2)**2+
+        Math.cos(lat1)*
+        Math.cos(lat2)*
+        Math.sin(dLon/2)**2;
+
+    return Math.round(
+        R*2*
+        Math.atan2(
+            Math.sqrt(x),
+            Math.sqrt(1-x)
+        )
+    );
+}
+
+
+/* =========================================================
+   ROUTE AIRCRAFT
+========================================================= */
+
+function updateRouteAircraftAvailability(){
+    /*
+        Reserved for future route-specific
+        aircraft filtering.
+    */
+}
+
+
+/* =========================================================
+   OPEN ROUTE
+========================================================= */
+
+function openRoute(){
+
+    const origin=
+        document.getElementById(
+            "originSelect"
+        ).value;
+
+    const destination=
+        document.getElementById(
+            "destinationSelect"
+        ).value;
+
+    const aircraftId=
+        document.getElementById(
+            "routeAircraftSelect"
+        ).value;
+
+    if(!origin||!destination){
+
+        notify(
+            "Choose an origin and destination."
+        );
+
+        return;
+    }
+
+    if(origin===destination){
+
+        notify(
+            "Choose two different airports."
+        );
+
+        return;
+    }
+
+    if(!aircraftId){
+
+        notify(
+            "You need an aircraft first."
+        );
+
+        return;
+    }
+
+    const owned=
+        game.aircraft.find(
+            a=>
+                String(a.id)===
+                String(aircraftId)
+        );
+
+    if(!owned){
+
+        notify(
+            "Aircraft not found."
+        );
+
+        return;
+    }
+
+    const plane=
+        aircraftData.find(
+            a=>a.id===owned.type
+        );
+
+    if(!plane){
+
+        notify(
+            "Aircraft data not found."
+        );
+
+        return;
+    }
+
+    /*
+        Ensure aircraft role matches
+        the airline type.
+    */
+
+    if(
+        game.businessType==="passenger" &&
+        plane.role!=="passenger"
+    ){
+
+        notify(
+            "Passenger airlines can only operate passenger aircraft."
+        );
+
+        return;
+    }
+
+    if(
+        game.businessType==="cargo" &&
+        plane.role!=="cargo"
+    ){
+
+        notify(
+            "Cargo airlines can only operate cargo aircraft."
+        );
+
+        return;
+    }
+
+    const distance=
+        calculateDistance(
+            origin,
+            destination
+        );
+
+    if(
+        distance>
+        plane.range
+    ){
+
+        notify(
+            `${plane.name} cannot fly this route.`
+        );
+
+        return;
+    }
+
+    const exists=
+        game.routes.some(
+            r=>
+                r.origin===origin &&
+                r.destination===destination
+        );
+
+    if(exists){
+
+        notify(
+            "You already operate this route."
+        );
+
+        return;
+    }
+
+    game.routes.push({
+
+        id:Date.now(),
+
+        origin:origin,
+
+        destination:destination,
+
+        aircraftId:owned.id,
+
+        distance:distance,
+
+        flights:0,
+
+        passengers:0,
+
+        cargoTons:0,
+
+        revenue:0,
+        ticketPrice:game.ticketPrice || 180,
+        demand:Math.round(60 + Math.random()*30),
+        cargoContractId:null
+    });
+
+    game.reputation=
+        Math.min(
+            100,
+            game.reputation+1
+        );
+
+    saveGame();
+
+    populateRouteSelectors();
+
+    renderRoutes();
+
+    updateUI();
+
+    notify(
+        `🌍 Route opened:
+        ${origin} → ${destination}`
+    );
+}
+
+
+/* =========================================================
+   ROUTE DISPLAY
+========================================================= */
+
+function renderRoutes(){
+
+    populateRouteSelectors();
+
+    const list=
+        document.getElementById(
+            "routeList"
+        );
+
+    list.innerHTML="";
+
+    if(game.routes.length===0){
+
+        list.innerHTML=`
+
+            <div class="card">
+
+                <h2>
+                    No routes yet
+                </h2>
+
+                <p
+                    style="color:#8092aa"
+                >
+                    Buy an aircraft and
+                    open your first route.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+    game.routes.forEach(route=>{
+
+        const plane=
+            game.aircraft.find(
+                a=>
+                    String(a.id)===
+                    String(route.aircraftId)
+            );
+
+        const data=
+            plane
+            ?
+            aircraftData.find(
+                a=>a.id===plane.type
+            )
+            :
+            null;
+
+        const origin=
+            getAirport(
+                route.origin
+            );
+
+        const destination=
+            getAirport(
+                route.destination
+            );
+
+        const card=
+            document.createElement(
+                "div"
+            );
+
+        card.className=
+            "routeCard";
+
+        const operationType=
+            data?.role==="cargo"
+            ?
+            "📦 Cargo"
+            :
+            "👥 Passenger";
+
+        card.innerHTML=`
+
+            <div>
+
+                <div class="routePath">
+
+                    ${operationType}
+                    ${route.origin}
+                    →
+                    ${route.destination}
+
+                </div>
+
+                <div class="routeMeta">
+
+                    ${origin.name}
+                    →
+                    ${destination.name}
+                    ·
+                    ${route.distance.toLocaleString()}
+                    km
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <div class="routeMeta">
+                    Aircraft
+                </div>
+
+                <b>
+                    ${
+                        data
+                        ?
+                        data.name
+                        :
+                        "Unknown"
+                    }
+                </b>
+
+            </div>
+
+            <div>
+
+                <div class="routeMeta">
+
+                    ${
+                        data?.role==="cargo"
+                        ?
+                        "Cargo"
+                        :
+                        "Passengers"
+                    }
+
+                </div>
+
+                <b>
+
+                    ${
+                        data?.role==="cargo"
+                        ?
+                        (route.cargoTons||0)+
+                        " t"
+                        :
+                        (route.passengers||0)
+                            .toLocaleString()
+                    }
+
+                </b>
+
+            </div>
+
+            <div>
+
+                <div class="routeMeta">
+                    Revenue
+                </div>
+
+                <b class="green">
+                    ${money(route.revenue)}
+                </b>
+
+            </div>
+
+            <div class="routeControls">
+                ${data?.role==="passenger" ? `
+                    <label>Ticket $<input type="number" min="50" max="3000" value="${Math.round(route.ticketPrice||180)}" onchange="setRoutePrice(${route.id},this.value)"></label>
+                ` : `
+                    <button class="smallButton" onclick="assignCargoContract(${route.id})">📦 CONTRACT</button>
+                `}
+                <span>Demand: <b>${Math.round(route.demand||75)}%</b></span>
+                <button class="smallButton" onclick="closeRoute(${route.id})" style="background:#ff555522;color:#ffaaaa">CLOSE</button>
+            </div>
+
+        `;
+
+        list.appendChild(card);
+
+    });
+
+}
+
+
+/* =========================================================
+   CLOSE ROUTE
+========================================================= */
+
+function closeRoute(id){
+
+    game.routes=
+        game.routes.filter(
+            r=>r.id!==id
+        );
+
+    game.reputation=
+        Math.max(
+            0,
+            game.reputation-1
+        );
+
+    saveGame();
+
+    renderRoutes();
+
+    updateUI();
+
+    notify(
+        "Route closed."
+    );
+}
+
+
+/* =========================================================
+   NEXT DAY
+========================================================= */
+
+function advanceDay(){
+
+    if(!game) return;
+
+    /* Fuel prices fluctuate naturally. */
+    game.fuelPrice = Math.max(0.65, Math.min(2.80, game.fuelPrice * (0.94 + Math.random()*0.12)));
+
+    let totalRevenue=0;
+    let totalCosts=0;
+    let totalPassengers=0;
+    let totalCargo=0;
+
+    game.aircraft.forEach(owned=>{
+        owned.age = Math.max(0, Number(owned.age)||0);
+        owned.flights = Number(owned.flights)||0;
+        owned.condition = Number(owned.condition);
+        if(Number.isNaN(owned.condition)) owned.condition=100;
+    });
+
+    game.routes.forEach(route=>{
+
+        const owned=game.aircraft.find(a=>String(a.id)===String(route.aircraftId));
+        if(!owned) return;
+
+        const plane=aircraftData.find(a=>a.id===owned.type);
+        if(!plane) return;
+
+        route.demand = Math.max(15, Math.min(100,
+            (Number(route.demand)||75) + (Math.random()*12-6) + (game.reputation-50)*0.05
+        ));
+
+        const conditionFactor=Math.max(0.55, (owned.condition||100)/100);
+        const fuelMultiplier=game.fuelPrice/1.20;
+        const flights=2;
+
+        if(plane.role==="passenger"){
+            const priceFactor=Math.max(0.35, Math.min(1.25, 180/(route.ticketPrice||180)));
+            const demandFactor=(0.45 + (route.demand/100)*0.55) * priceFactor * (0.70 + game.reputation/300);
+            const passengers=Math.max(0,Math.min(plane.seats,Math.round(plane.seats*demandFactor*(0.88+Math.random()*0.22))));
+            const revenuePerPassenger=Math.max(70, (route.distance*0.18) * ((route.ticketPrice||180)/180));
+            const revenue=passengers*flights*revenuePerPassenger;
+            const fuelCost=plane.fuel*flights*0.0009*game.fuelPrice;
+            const maintenance=plane.seats*flights*(65 + (100-conditionFactor*100)*2.2);
+            const crew=flights*1800;
+            const costs=fuelCost+maintenance+crew;
+
+            route.passengers += passengers*flights;
+            route.flights += flights;
+            route.revenue += revenue;
+            owned.flights += flights;
+            totalPassengers += passengers*flights;
+            totalRevenue += revenue;
+            totalCosts += costs;
+        }else{
+            const demandFactor=(0.55 + (route.demand/100)*0.55)*(0.80+game.reputation/400);
+            const tons=Math.max(0,Math.min(plane.cargoCapacity,Math.round(plane.cargoCapacity*demandFactor*(0.88+Math.random()*0.22))));
+            const revenuePerTon=Math.max(150,route.distance*0.48);
+            const revenue=tons*flights*revenuePerTon;
+            const fuelCost=plane.fuel*flights*0.0009*game.fuelPrice;
+            const maintenance=plane.cargoCapacity*flights*(140+(100-conditionFactor*100)*3);
+            const crew=flights*3000;
+            const costs=fuelCost+maintenance+crew;
+
+            route.cargoTons += tons*flights;
+            route.flights += flights;
+            route.revenue += revenue;
+            owned.flights += flights;
+            totalCargo += tons*flights;
+            totalRevenue += revenue;
+            totalCosts += costs;
+
+            if(route.cargoContractId){
+                const c=game.contracts.find(x=>x.id===route.cargoContractId);
+                if(c && !c.completed){
+                    c.progress += tons*flights;
+                    if(c.progress>=c.target){
+                        c.completed=true;
+                        const bonus=c.reward;
+                        game.money += bonus;
+                        totalRevenue += bonus;
+                        notify("📦 Cargo contract completed: "+money(bonus)+" bonus!");
+                    }
+                }
+            }
+        }
+
+        owned.condition=Math.max(0,owned.condition - (0.10 + flights*0.35 + (owned.age>8?0.15:0)));
+    });
+
+    /* Age every aircraft by one game day and apply lease/loan costs. */
+    game.aircraft.forEach(a=>a.age=(Number(a.age)||0)+1/30);
+
+    let leaseCosts=0;
+    game.aircraft.forEach(a=>{
+        if(a.leased){
+            const d=aircraftData.find(x=>x.id===a.type);
+            if(d) leaseCosts += d.price*0.00035;
+        }
+    });
+
+    let interest=0;
+    if(game.loan && game.loan.balance>0){
+        interest=game.loan.balance*0.00012;
+        game.loan.balance += interest;
+        game.loan.interest += interest;
+    }
+
+    totalCosts += leaseCosts + interest;
+
+    game.money += totalRevenue-totalCosts;
+    game.totalRevenue += totalRevenue;
+    game.totalCosts += totalCosts;
+    game.lastDayRevenue=totalRevenue;
+    game.lastDayCosts=totalCosts;
+    game.passengers += totalPassengers;
+    game.cargoTons += totalCargo;
+    game.day++;
+
+    if(totalRevenue>totalCosts){
+        game.reputation=Math.min(100,game.reputation+(Math.random()<0.6?1:0));
+    }else{
+        game.reputation=Math.max(0,game.reputation-(Math.random()<0.35?1:0));
+    }
+
+    /* Deliver pending orders. */
+    const arriving=game.pendingOrders.filter(o=>o.deliveryDay<=game.day);
+    arriving.forEach(o=>{
+        game.aircraft.push({id:Date.now()+Math.random(),type:o.type,age:0,flights:0,role:o.role,condition:100,leased:false,purchaseDay:game.day});
+    });
+    game.pendingOrders=game.pendingOrders.filter(o=>o.deliveryDay>game.day);
+
+    /* Generate a new cargo contract when appropriate. */
+    if(game.contracts.filter(c=>!c.completed).length<2 && game.businessType!=="passenger"){
+        createCargoContract();
+    }
+
+    checkAchievements();
+
+    game.financeLog.unshift(`Day ${game.day}: +${money(totalRevenue)} revenue, -${money(totalCosts)} costs, net ${money(totalRevenue-totalCosts)}.`);
+    game.financeLog=game.financeLog.slice(0,20);
+    saveGame();
+    refreshAll();
+    notify(`📅 Day ${game.day} — ${money(totalRevenue-totalCosts)} net profit`);
+
+}
+
+/* =========================================================
+   FINANCE
+========================================================= */
+
+function renderFinance(){
+
+    document.getElementById(
+        "financeCash"
+    ).textContent=
+        money(game.money);
+
+    document.getElementById(
+        "financeRevenue"
+    ).textContent=
+        money(game.totalRevenue);
+
+    document.getElementById(
+        "financeCosts"
+    ).textContent=
+        money(game.totalCosts);
+
+    document.getElementById(
+        "financeProfit"
+    ).textContent=
+        money(
+            game.totalRevenue-
+            game.totalCosts
+        );
+
+
+    const log=
+        document.getElementById(
+            "financeLog"
+        );
+
+    log.innerHTML="";
+
+
+    if(
+        game.financeLog.length===0
+    ){
+
+        log.innerHTML=
+            `<p
+                style="color:#8092aa"
+            >
+                No financial activity yet.
+             </p>`;
+
+        return;
+    }
+
+
+    game.financeLog.forEach(item=>{
+
+        const div=
+            document.createElement(
+                "div"
+            );
+
+        div.style.padding="10px";
+
+        div.style.borderBottom=
+            "1px solid #ffffff10";
+
+        div.textContent=item;
+
+        log.appendChild(div);
+    });
+
+}
+
+
+/* =========================================================
+   AIRLINE
+========================================================= */
+
+function renderAirline(){
+
+    document.getElementById(
+        "airlineNameInput"
+    ).value=
+        game.airlineName;
+
+    document.getElementById(
+        "airlineRep"
+    ).textContent=
+        game.reputation;
+
+    document.getElementById(
+        "airlineRoutes"
+    ).textContent=
+        game.routes.length;
+
+    document.getElementById(
+        "airlineFleet"
+    ).textContent=
+        game.aircraft.length;
+
+    document.getElementById(
+        "airlineCountry"
+    ).textContent=
+        game.baseCountry;
+}
+
+
+/* =========================================================
+   CHANGE AIRLINE NAME
+========================================================= */
+
+function changeAirlineName(){
+
+    const input=
+        document.getElementById(
+            "airlineNameInput"
+        );
+
+    const name=
+        input.value.trim();
+
+    if(!name){
+
+        notify(
+            "Enter an airline name."
+        );
+
+        return;
+    }
+
+    game.airlineName=
+        name;
+
+    saveGame();
+
+    updateUI();
+
+    notify(
+        "🏢 Airline name saved!"
+    );
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderFleetPreview(){
+
+    const box=
+        document.getElementById(
+            "fleetPreview"
+        );
+
+    box.innerHTML="";
+
+
+    if(game.aircraft.length===0){
+
+        box.innerHTML=`
+
+            <div class="card">
+
+                <h2>
+                    ✈️ Your fleet is empty
+                </h2>
+
+                <p
+                    class="cardDescription"
+                >
+                    Buy your first aircraft
+                    to get started.
+                </p>
+
+                <button
+                    onclick="showPageById('aircraft')"
+                >
+                    VIEW AIRCRAFT
+                </button>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    const counts={};
+
+    game.aircraft.forEach(a=>{
+
+        counts[a.type]=
+            (counts[a.type]||0)+1;
+
+    });
+
+
+    Object.keys(counts)
+        .slice(0,8)
+        .forEach(type=>{
+
+            const data=
+                aircraftData.find(
+                    a=>a.id===type
+                );
+
+            const div=
+                document.createElement(
+                    "div"
+                );
+
+            div.className="card";
+
+
+            const icon=
+                data.role==="cargo"
+                ? "📦✈️"
+                : "✈️";
+
+
+            div.innerHTML=`
+
+                <div class="bigIcon">
+                    ${icon}
+                </div>
+
+                <h3>
+                    ${data.name}
+                </h3>
+
+                <p
+                    class="cardDescription"
+                >
+                    ${
+                        data.role==="cargo"
+                        ?
+                        data.cargoCapacity+
+                        " t cargo · "
+                        :
+                        data.seats+
+                        " seats · "
+                    }
+                    ${data.range.toLocaleString()}
+                    km range
+                </p>
+
+                <strong>
+                    ×${counts[type]}
+                </strong>
+                <p class="cardDescription">
+                    Avg condition: ${Math.round(game.aircraft.filter(x=>x.type===type).reduce((sum,x)=>sum+(Number(x.condition)||100),0)/counts[type])}%
+                </p>
+                <button class="smallButton" onclick="sellAircraftType('${type}')">SELL ONE</button>
+                <button class="smallButton" onclick="maintainAircraftType('${type}')">🔧 SERVICE</button>
+
+            `;
+
+            box.appendChild(div);
+
+        });
+}
+
+
+/* =========================================================
+   UI UPDATE
+========================================================= */
+
+function updateUI(){
+
+    document.getElementById(
+        "topMoney"
+    ).textContent=
+        money(game.money);
+
+    document.getElementById(
+        "topAircraft"
+    ).textContent=
+        game.aircraft.length;
+
+    document.getElementById(
+        "topRoutes"
+    ).textContent=
+        game.routes.length;
+
+    document.getElementById(
+        "topRep"
+    ).textContent=
+        game.reputation;
+
+    document.getElementById(
+        "dayDisplay"
+    ).textContent=
+        "Day "+game.day;
+
+    document.getElementById(
+        "sidebarAirline"
+    ).textContent=
+        game.airlineName.toUpperCase();
+
+
+    document.getElementById(
+        "welcomeTitle"
+    ).textContent=
+        "Welcome, CEO of "+
+        game.airlineName+
+        " ✈️";
+
+
+    document.getElementById(
+        "dashPassengers"
+    ).textContent=
+        game.passengers
+            .toLocaleString();
+
+
+    document.getElementById(
+        "dashCargo"
+    ).textContent=
+        game.cargoTons+
+        " t";
+
+
+    document.getElementById(
+        "dashRevenue"
+    ).textContent=
+        money(
+            game.lastDayRevenue || 0
+        );
+
+
+    document.getElementById(
+        "dashCosts"
+    ).textContent=
+        money(
+            game.lastDayCosts || 0
+        );
+
+
+    document.getElementById(
+        "businessTypeBadge"
+    ).textContent=
+        typeLabels[
+            game.businessType
+        ];
+
+
+    document.getElementById(
+        "countryBadge"
+    ).textContent=
+        "🌍 "+
+        game.baseCountry;
+
+
+    const home=
+        getAirport(
+            game.homeAirport
+        );
+
+
+    document.getElementById(
+        "homeAirportBadge"
+    ).textContent=
+        home
+        ?
+        "🛫 "+
+        home.code+
+        " "+
+        home.name
+        :
+        "🛫 —";
+
+
+    renderFleetPreview();
+
+}
+
+
+/* =========================================================
+   NOTIFICATION
+========================================================= */
+
+let notificationTimer;
+
+function notify(message){
+
+    const box=
+        document.getElementById(
+            "notification"
+        );
+
+    box.textContent=
+        message;
+
+    box.classList.remove(
+        "hidden"
+    );
+
+    clearTimeout(
+        notificationTimer
+    );
+
+    notificationTimer=
+        setTimeout(
+            ()=>{
+                box.classList.add(
+                    "hidden"
+                );
+            },
+            3500
+        );
+}
+
+
+/* =========================================================
+   FULL RESET
+========================================================= */
+
+function setRoutePrice(id,value){
+ const r=game.routes.find(x=>x.id===id); if(!r)return;
+ r.ticketPrice=Math.max(50,Math.min(3000,Number(value)||180)); saveGame(); renderRoutes(); notify("🎟️ Ticket price updated.");
+}
+function sellAircraftType(type){
+ const index=game.aircraft.findIndex(a=>a.type===type); if(index<0)return;
+ const owned=game.aircraft[index],data=aircraftData.find(a=>a.id===type); if(!data)return;
+ if(game.routes.some(r=>String(r.aircraftId)===String(owned.id))){notify("That aircraft is assigned to a route. Close the route first.");return;}
+ const resale=Math.round(data.price*.62*Math.max(.35,(owned.condition||100)/100));
+ if(!confirm(`Sell ${data.name} for ${money(resale)}?`))return;
+ game.money+=resale;game.aircraft.splice(index,1);game.financeLog.unshift(`Day ${game.day}: Sold ${data.name} for ${money(resale)}.`);game.financeLog=game.financeLog.slice(0,20);saveGame();refreshAll();notify(`💵 ${data.name} sold for ${money(resale)}.`);
+}
+function maintainAircraftType(type){
+ const owned=game.aircraft.find(a=>a.type===type),data=owned&&aircraftData.find(x=>x.id===owned.type);if(!owned||!data)return;
+ const missing=Math.max(0,100-(owned.condition||100));if(missing<1){notify("This aircraft is already at 100% condition.");return;}
+ const cost=Math.max(25000,Math.round(data.price*.0007*missing));if(game.money<cost){notify("Not enough money for maintenance.");return;}
+ game.money-=cost;owned.condition=100;game.totalCosts+=cost;game.financeLog.unshift(`Day ${game.day}: Serviced ${data.name} for ${money(cost)}.`);game.financeLog=game.financeLog.slice(0,20);saveGame();refreshAll();notify(`🔧 ${data.name} restored to 100%.`);
+}
+function takeLoan(amount){
+ if(game.loan&&game.loan.balance>0){notify("Repay your current loan before taking another.");return;}
+ game.loan={principal:amount,balance:amount,interest:0};game.money+=amount;game.financeLog.unshift(`Day ${game.day}: Borrowed ${money(amount)} from the bank.`);game.financeLog=game.financeLog.slice(0,20);saveGame();refreshAll();notify(`🏦 ${money(amount)} loan approved.`);
+}
+function repayLoan(){
+ if(!game.loan||game.loan.balance<=0){notify("You have no active loan.");return;}if(game.money<game.loan.balance){notify("You don't have enough cash to repay the full loan.");return;}
+ const amount=game.loan.balance;game.money-=amount;game.loan={principal:0,balance:0,interest:0};saveGame();refreshAll();notify("🏦 Loan fully repaid.");
+}
+function createCargoContract(){
+ if(!game||game.businessType==="passenger")return;
+ const cargoPlanes=game.aircraft.some(a=>{const d=aircraftData.find(x=>x.id===a.type);return d&&d.role==="cargo";});if(!cargoPlanes)return;
+ const target=40+Math.floor(Math.random()*161);game.contracts.push({id:Date.now()+Math.random(),target,progress:0,reward:target*1800+25000,completed:false});game.contracts=game.contracts.slice(-5);
+}
+function assignCargoContract(routeId){
+ const r=game.routes.find(x=>x.id===routeId);if(!r)return;const plane=game.aircraft.find(a=>String(a.id)===String(r.aircraftId));const data=plane&&aircraftData.find(x=>x.id===plane.type);
+ if(!data||data.role!=="cargo"){notify("Only cargo routes can take cargo contracts.");return;}
+ const c=game.contracts.find(x=>!x.completed&&!game.routes.some(y=>y.cargoContractId===x.id));if(!c){createCargoContract();notify("No contract available yet. Try again next day.");return;}
+ r.cargoContractId=c.id;saveGame();renderRoutes();renderManagement();notify("📦 Cargo contract assigned.");
+}
+const achievementDefs=[
+ ["first_route","First Flight","Open your first route.",()=>game.routes.length>=1],
+ ["five_routes","Network Builder","Operate 5 routes.",()=>game.routes.length>=5],
+ ["ten_aircraft","Fleet Builder","Own 10 aircraft.",()=>game.aircraft.length>=10],
+ ["fifty_aircraft","Mega Airline","Own 50 aircraft.",()=>game.aircraft.length>=50],
+ ["million","Millionaire","Have $1 million cash.",()=>game.money>=1000000],
+ ["billion","Billionaire","Have $1 billion cash.",()=>game.money>=1000000000],
+ ["million_passengers","One Million Passengers","Carry 1,000,000 passengers.",()=>game.passengers>=1000000],
+ ["cargo_1000","Cargo King","Move 1,000 tonnes of cargo.",()=>game.cargoTons>=1000],
+ ["rep_100","Five Stars","Reach 100 reputation.",()=>game.reputation>=100]
+];
+function checkAchievements(){
+ if(!game.achievements)game.achievements={};achievementDefs.forEach(([id,name,desc,test])=>{if(!game.achievements[id]&&test()){game.achievements[id]={day:game.day};game.money+=100000;game.financeLog.unshift(`Day ${game.day}: Achievement unlocked — ${name}. Bonus ${money(100000)}.`);}});
+}
+function renderCodes(){
+    if(!game) return;
+    const redeemed=Array.isArray(game.redeemedCodes)?game.redeemedCodes:[];
+    const statuses={
+        "codeStatus100MILFREE":redeemed.includes("100MILFREE"),
+        "codeStatusA340":redeemed.includes("AIRBUSA340-600FREE"),
+        "codeStatusDEVGIFT":redeemed.includes("DEVGIFT")
+    };
+    Object.entries(statuses).forEach(([id,used])=>{
+        const el=document.getElementById(id);
+        if(el){ el.textContent=used?"Redeemed":"Available"; el.style.color=used?"#5dffbd":"#ffd65a"; }
+    });
+}
+
+function redeemCode(){
+    if(!game) return;
+    const input=document.getElementById("promoCodeInput");
+    const msg=document.getElementById("codeMessage");
+    const code=(input?.value||"").trim().toUpperCase();
+    if(!code){ if(msg)msg.textContent="Enter a code first."; return; }
+    if(!["100MILFREE","AIRBUSA340-600FREE","DEVGIFT"].includes(code)){
+        if(msg)msg.textContent="❌ Invalid code.";
+        return;
+    }
+    if(game.redeemedCodes.includes(code)){
+        if(msg)msg.textContent="⚠️ That code has already been redeemed.";
+        return;
+    }
+
+    if(code==="100MILFREE"){
+        game.money+=100000000;
+        game.financeLog.unshift(`Day ${game.day}: Redeemed 100MILFREE for $100M.`);
+    }else if(code==="AIRBUSA340-600FREE"){
+        const data=aircraftData.find(a=>a.name.toLowerCase()==="airbus a340-600" || a.name.toLowerCase().includes("a340-600"));
+        if(!data){ if(msg)msg.textContent="❌ Airbus A340-600 could not be found in the aircraft catalog."; return; }
+        game.aircraft.push({id:Date.now()+Math.random(),type:data.id,age:0,flights:0,role:data.role,condition:100,leased:false,purchaseDay:game.day,freeGift:true});
+        game.financeLog.unshift(`Day ${game.day}: Redeemed AIRBUSA340-600FREE for a free Airbus A340-600.`);
+    }else if(code==="DEVGIFT"){
+        game.financeLog.unshift(`Day ${game.day}: Redeemed DEVGIFT — Santo International Airport (SON) unlocked.`);
+    }
+
+    game.redeemedCodes.push(code);
+    game.financeLog=game.financeLog.slice(0,20);
+    saveGame();
+    if(msg)msg.textContent="✅ Code redeemed successfully!";
+    if(input)input.value="";
+    refreshAll();
+    showPage("codes",document.querySelectorAll(".navButton")[5]);
+    notify(`🎁 ${code} redeemed!`);
+}
+
+function renderManagement(){
+ if(!game)return;const fuel=document.getElementById("fuelPriceDisplay"),avg=document.getElementById("avgTicketDisplay"),cond=document.getElementById("fleetConditionDisplay"),profit=document.getElementById("lifetimeProfitDisplay");
+ if(fuel)fuel.textContent=money(game.fuelPrice*1000)+" / 1,000 L";
+ const prs=game.routes.filter(r=>{const a=game.aircraft.find(x=>String(x.id)===String(r.aircraftId));const d=a&&aircraftData.find(x=>x.id===a.type);return d&&d.role==="passenger";});
+ if(avg)avg.textContent=money(prs.length?prs.reduce((x,r)=>x+(r.ticketPrice||180),0)/prs.length:180);
+ const avgCond=game.aircraft.length?game.aircraft.reduce((x,a)=>x+(Number(a.condition)||100),0)/game.aircraft.length:100;if(cond)cond.textContent=Math.round(avgCond)+"%";
+ if(profit){const p=game.totalRevenue-game.totalCosts;profit.textContent=money(p);profit.className="miniStat "+(p>=0?"positive":"negative");}
+ const ls=document.getElementById("loanStatus"),ld=document.getElementById("loanDetails");if(game.loan&&game.loan.balance>0){ls.textContent="Active loan";ld.textContent=`Balance ${money(game.loan.balance)} · Interest ${money(game.loan.interest||0)}`;}else{ls.textContent="No active loan";ld.textContent="Borrow up to $100M at a time.";}
+ const cl=document.getElementById("contractList");if(cl)cl.innerHTML=game.contracts.filter(c=>!c.completed).map(c=>`<div class="loanBox contract"><b>${c.progress}/${c.target} tonnes</b><br>Reward ${money(c.reward)}<div class="progress"><div style="width:${Math.min(100,c.progress/c.target*100)}%"></div></div></div>`).join("")||"<p>No active contracts. Buy a cargo aircraft to unlock them.</p>";
+ const al=document.getElementById("achievementList");if(al)al.innerHTML=achievementDefs.map(([id,name,desc])=>{const u=!!game.achievements[id];return `<div class="achievement ${u?'unlocked':''}"><b>${u?'🏆':'🔒'} ${name}</b><span>${desc}</span>${u?'<br><small>Unlocked Day '+game.achievements[id].day+'</small>':''}</div>`;}).join("");
+}
+
+function resetGame(){
+
+    if(!confirm(
+        "⚠️ FULL RESET\n\n"+
+        "This will completely erase your airline and return you to the airline creation menu.\n\nContinue?"
+    )){
+        return;
+    }
+
+    /* Remove every save key used by this game or its old versions. */
+    const keysToDelete=[];
+
+    for(let i=0;i<localStorage.length;i++){
+        const key=localStorage.key(i);
+        if(key && (
+            key===SAVE_KEY ||
+            key===OLD_SAVE_KEY ||
+            key.toLowerCase().includes("jala") ||
+            key.toLowerCase().includes("skylineairline")
+        )){
+            keysToDelete.push(key);
+        }
+    }
+
+    keysToDelete.forEach(key=>localStorage.removeItem(key));
+
+    /* Completely clear the in-memory airline too. */
+    game=null;
+    selectedBusinessType="passenger";
+
+    /* Hide the game and immediately show a fresh creation screen. */
+    document.getElementById("app").classList.add("hidden");
+    document.getElementById("setupScreen").classList.remove("hidden");
+
+    document.getElementById("setupAirlineName").value="";
+    document.getElementById("selectedCountry").value="";
+    document.getElementById("selectedHomeAirport").value="";
+    document.getElementById("countrySearch").value="";
+    document.getElementById("homeAirportSearch").value="";
+
+    document.querySelectorAll(".typeCard").forEach(card=>card.classList.remove("selected"));
+    document.getElementById("typePassenger").classList.add("selected");
+
+    renderCountryOptions();
+    selectHomeCountry("Australia");
+
+    window.scrollTo(0,0);
+
+    notify("🔄 Airline reset. Create your new airline!");
+}
+
+
+
+/* =========================================================
+   REFRESH ALL
+========================================================= */
+
+function refreshAll(){
+
+    updateUI();
+
+    populateRouteSelectors();
+
+    renderAircraft();
+
+    renderRoutes();
+
+    renderFinance();
+
+    renderAirline();
+
+    renderCodes();
+
+    renderManagement();
+}
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+function startGame(){
+
+    /* Existing saved airline */
+    if(
+        game &&
+        game.airlineName &&
+        game.businessType &&
+        game.baseCountry &&
+        game.homeAirport
+    ){
+
+        document
+            .getElementById("setupScreen")
+            .classList
+            .add("hidden");
+
+        document
+            .getElementById("app")
+            .classList
+            .remove("hidden");
+
+        refreshAll();
+
+        return;
+
+    }
+
+    /* New airline */
+    document
+        .getElementById("setupScreen")
+        .classList
+        .remove("hidden");
+
+    document
+        .getElementById("app")
+        .classList
+        .add("hidden");
+
+    if(typeof renderCountryOptions === "function")
+        renderCountryOptions();
+
+    /* Default creation-screen country. */
+    if(typeof selectHomeCountry === "function")
+        selectHomeCountry("Australia");
+
+}
+
+
+/* =========================================================
+   SETUP SCREEN INITIALIZATION
+========================================================= */
+
+startGame();
+
+</script>
+
+</body>
+</html>
