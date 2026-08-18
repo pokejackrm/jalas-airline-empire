@@ -763,6 +763,26 @@ input:focus,select:focus{
 .achievement.unlocked{border-color:#66e6a355;background:#66e6a30b}.achievement b{display:block;margin-bottom:4px}
 .contract{border-left:4px solid #55ddff}
 @media(max-width:700px){.managementGrid{grid-template-columns:1fr}.routeControls input{width:100%}}
+
+/* =========================================================
+   TUTORIAL
+========================================================= */
+#tutorialOverlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(1,6,18,.78);backdrop-filter:blur(8px)}
+#tutorialOverlay.hidden{display:none!important}
+.tutorialPanel{width:min(680px,94vw);max-height:90vh;overflow:auto;padding:30px;border-radius:24px;background:linear-gradient(145deg,#0b1b34,#071124);border:1px solid #55dfff55;box-shadow:0 30px 100px #000b,0 0 45px #00bfff18}
+.tutorialTop{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.tutorialStepCount{color:#61e7ff;font-size:12px;font-weight:bold;text-transform:uppercase}
+.tutorialPanel h2{margin:12px 0 8px;font-size:30px}
+.tutorialPanel p{color:#b7c9dd;line-height:1.6}
+.tutorialTips{margin:18px 0;padding:16px 18px;border-radius:15px;background:#ffffff08;border:1px solid #ffffff10}
+.tutorialTips div{margin:8px 0}
+.tutorialProgress{height:7px;background:#ffffff12;border-radius:20px;overflow:hidden;margin:20px 0}
+.tutorialProgress div{height:100%;background:linear-gradient(90deg,#55ddff,#7a9cff);transition:width .25s}
+.tutorialActions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:22px;flex-wrap:wrap}
+.tutorialActionsRight{display:flex;gap:8px}
+.tutorialSkip,.tutorialBack{background:#ffffff08;color:#dceaff;border:1px solid #ffffff12}
+.tutorialSkip{color:#aebfd3}
+@media(max-width:650px){.tutorialPanel{padding:22px}.tutorialPanel h2{font-size:25px}.tutorialActions{flex-direction:column;align-items:stretch}.tutorialActionsRight{width:100%}.tutorialActionsRight button{flex:1}}
 </style>
 </head>
 
@@ -1588,9 +1608,21 @@ input:focus,select:focus{
             </div>
 
             <div class="card">
-                <h2>🔐 Secret Rewards</h2>
-                <p>There are currently <b>3 special codes</b> hidden in the game.</p>
-                <p style="color:#8092aa">Find the codes and enter them above to discover their rewards.</p>
+                <h2>💰 100MILFREE</h2>
+                <p>Receive <b>$100,000,000</b> instantly.</p>
+                <div class="loanBox">Status: <span id="codeStatus100MILFREE">Available</span></div>
+            </div>
+
+            <div class="card">
+                <h2>✈️ AIRBUSA340-600FREE</h2>
+                <p>Receive an <b>Airbus A340-600</b> completely free.</p>
+                <div class="loanBox">Status: <span id="codeStatusA340">Available</span></div>
+            </div>
+
+            <div class="card">
+                <h2>🌴 DEVGIFT</h2>
+                <p>Unlock <b>Santo International Airport (SON)</b> as a destination.</p>
+                <div class="loanBox">Status: <span id="codeStatusDEVGIFT">Available</span></div>
             </div>
         </div>
     </section>
@@ -1633,6 +1665,30 @@ input:focus,select:focus{
 </div>
 </div>
 
+
+
+<!-- =========================================================
+   ONE-TIME TUTORIAL
+========================================================= -->
+<div id="tutorialOverlay" class="hidden" aria-modal="true" role="dialog">
+    <div class="tutorialPanel">
+        <div class="tutorialTop">
+            <div class="tutorialStepCount" id="tutorialStepCount">Step 1 of 8</div>
+            <div>✈️</div>
+        </div>
+        <h2 id="tutorialTitle">Welcome, CEO!</h2>
+        <p id="tutorialText"></p>
+        <div class="tutorialTips" id="tutorialTips"></div>
+        <div class="tutorialProgress"><div id="tutorialProgressBar"></div></div>
+        <div class="tutorialActions">
+            <button class="tutorialSkip" onclick="skipTutorial()">SKIP TUTORIAL</button>
+            <div class="tutorialActionsRight">
+                <button class="tutorialBack" id="tutorialBackButton" onclick="previousTutorialStep()">BACK</button>
+                <button class="primaryButton" id="tutorialNextButton" onclick="nextTutorialStep()">NEXT</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div
     id="notification"
@@ -2974,6 +3030,9 @@ if(savedData){
 
 if(game){
 
+    if(typeof game.tutorialCompleted !== "boolean")
+        game.tutorialCompleted=false;
+
     game.airlineName =
         game.airlineName ||
         "JaLa Airlines";
@@ -3376,6 +3435,7 @@ function createAirline(){
             contracts:[],
             achievements:{},
             redeemedCodes:[],
+            tutorialCompleted:false,
             lastDayRevenue:0,
             lastDayCosts:0,
             aircraft:[],
@@ -3455,6 +3515,10 @@ function createAirline(){
     notify(
         `🚀 ${name} has been founded!`
     );
+
+    /* Show the tutorial only for a brand-new airline. */
+    if(!game.tutorialCompleted)
+        startTutorial();
 }
 
 
@@ -5347,6 +5411,80 @@ function renderManagement(){
  const al=document.getElementById("achievementList");if(al)al.innerHTML=achievementDefs.map(([id,name,desc])=>{const u=!!game.achievements[id];return `<div class="achievement ${u?'unlocked':''}"><b>${u?'🏆':'🔒'} ${name}</b><span>${desc}</span>${u?'<br><small>Unlocked Day '+game.achievements[id].day+'</small>':''}</div>`;}).join("");
 }
 
+/* =========================================================
+   ONE-TIME TUTORIAL SYSTEM
+========================================================= */
+
+let tutorialStep=0;
+
+const tutorialSteps=[
+    {title:"Welcome, CEO! ✈️",text:"This is your airline management game. Your goal is to build a profitable airline, grow your fleet, open routes and eventually become an aviation empire.",tips:["💰 Money — your available cash.","✈️ Aircraft — how large your fleet is.","🌍 Routes — the network your airline operates.","⭐ Reputation — higher reputation helps your airline perform better."]},
+    {title:"Build your fleet ✈️",text:"Open the Aircraft page to see the aircraft available to your business type. You can buy aircraft outright, lease them, or place an order for delivery in 2 game days.",tips:["BUY AIRCRAFT = own it immediately.","LEASE = smaller upfront cost, followed by daily lease payments.","ORDER · 2 DAYS = pay now and receive the aircraft later.","Aircraft condition falls as they operate, so maintenance matters."],page:"aircraft"},
+    {title:"Open your first route 🌍",text:"Once you own an aircraft, go to Routes. Choose an origin, destination and aircraft, then open the route. Your origin airports are limited to your airline's home country.",tips:["The aircraft must have enough range for the route.","Passenger aircraft carry passengers; cargo aircraft carry cargo.","Opening routes increases your network and reputation."],page:"routes"},
+    {title:"Manage ticket prices 🎟️",text:"Passenger routes let you set their own ticket price. Higher prices can increase revenue per passenger, but prices that are too high reduce demand.",tips:["Start near the default price if you're unsure.","Watch the Demand percentage on each route.","Cargo routes use cargo contracts instead of passenger ticket prices."],page:"routes"},
+    {title:"Advance the game 📅",text:"Your airline operates when you advance to the next game day. Routes generate revenue and costs, aircraft age, fuel prices change and orders can be delivered.",tips:["Use ⏩ NEXT DAY to simulate another day.","Keep an eye on your net profit.","Aircraft condition affects operating performance and costs."],page:"dashboard"},
+    {title:"Watch your finances 💰",text:"The Finance page tracks your cash, lifetime revenue, lifetime costs and profit. The Management page gives you more control over pricing, maintenance, loans and cargo contracts.",tips:["Avoid spending so much that you cannot operate comfortably.","Loans give you extra cash but add interest.","Maintenance restores aircraft condition to 100%."],page:"finance"},
+    {title:"Use the extra tools 🧠",text:"The Management page contains long-term tools, while the Codes page lets you redeem promotional codes. Achievements can also reward you as your airline grows.",tips:["🏆 Achievements reward milestones.","📦 Cargo contracts add optional goals for cargo airlines and mixed airlines.","🎁 Codes can provide special rewards when you have a valid code."],page:"management"},
+    {title:"You're ready to fly! 🚀",text:"That's everything you need to get started. Build a fleet, open profitable routes, manage your money and keep growing. You can always explore the menus yourself from here.",tips:["There is no required order after this tutorial.","Experiment with aircraft, routes and prices.","Good luck, CEO — build the biggest airline you can!"],page:"dashboard"}
+];
+
+function startTutorial(){
+    if(!game || game.tutorialCompleted)return;
+    tutorialStep=0;
+    document.getElementById("tutorialOverlay").classList.remove("hidden");
+    renderTutorialStep();
+}
+
+function renderTutorialStep(){
+    const step=tutorialSteps[tutorialStep];
+    if(!step)return;
+    const count=document.getElementById("tutorialStepCount");
+    const title=document.getElementById("tutorialTitle");
+    const text=document.getElementById("tutorialText");
+    const tips=document.getElementById("tutorialTips");
+    const progress=document.getElementById("tutorialProgressBar");
+    const back=document.getElementById("tutorialBackButton");
+    const next=document.getElementById("tutorialNextButton");
+    count.textContent=`Step ${tutorialStep+1} of ${tutorialSteps.length}`;
+    title.textContent=step.title;
+    text.textContent=step.text;
+    tips.innerHTML=step.tips.map(t=>`<div>${t}</div>`).join("");
+    progress.style.width=((tutorialStep+1)/tutorialSteps.length*100)+"%";
+    back.style.display=tutorialStep===0?"none":"inline-block";
+    next.textContent=tutorialStep===tutorialSteps.length-1?"FINISH TUTORIAL":"NEXT";
+    if(step.page && game)showPage(step.page,null);
+}
+
+function nextTutorialStep(){
+    if(tutorialStep>=tutorialSteps.length-1){finishTutorial();return;}
+    tutorialStep++;
+    renderTutorialStep();
+}
+
+function previousTutorialStep(){
+    if(tutorialStep<=0)return;
+    tutorialStep--;
+    renderTutorialStep();
+}
+
+function finishTutorial(){
+    if(!game)return;
+    game.tutorialCompleted=true;
+    saveGame();
+    document.getElementById("tutorialOverlay").classList.add("hidden");
+    showPage("dashboard",document.querySelectorAll(".navButton")[0]);
+    notify("🎓 Tutorial complete! You're ready to run your airline.");
+}
+
+function skipTutorial(){
+    if(!game)return;
+    game.tutorialCompleted=true;
+    saveGame();
+    document.getElementById("tutorialOverlay").classList.add("hidden");
+    showPage("dashboard",document.querySelectorAll(".navButton")[0]);
+    notify("⏭️ Tutorial skipped. You can run your airline now!");
+}
+
 function resetGame(){
 
     if(!confirm(
@@ -5450,6 +5588,10 @@ function startGame(){
             .remove("hidden");
 
         refreshAll();
+
+        /* If this save predates the tutorial, show it once. */
+        if(!game.tutorialCompleted)
+            startTutorial();
 
         return;
 
