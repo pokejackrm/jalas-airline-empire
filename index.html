@@ -3414,36 +3414,12 @@ function renderHomeAirportOptions(){
 
 function createAirline(){
 
-    /* Create a fresh game state when starting a brand-new airline. */
-    if(!game){
-        game={
-            airlineName:"JaLa Airlines",
-            businessType:"passenger",
-            baseCountry:"Australia",
-            homeAirport:"MEL",
-            money:250000000,
-            day:1,
-            reputation:50,
-            passengers:0,
-            cargoTons:0,
-            totalRevenue:0,
-            totalCosts:0,
-            ticketPrice:180,
-            fuelPrice:1.20,
-            loan:{principal:0,balance:0,interest:0},
-            pendingOrders:[],
-            contracts:[],
-            achievements:{},
-            redeemedCodes:[],
-            tutorialCompleted:false,
-            lastDayRevenue:0,
-            lastDayCosts:0,
-            aircraft:[],
-            routes:[],
-            financeLog:[]
-        };
-    }
-
+    /*
+       Read and validate the creation-screen choices BEFORE creating
+       the game object. This is important because otherwise an invalid
+       first attempt could leave a partial Australian default game in
+       memory and interfere with creating an airline in another country.
+    */
     const name=
         document
             .getElementById("setupAirlineName")
@@ -3485,6 +3461,36 @@ function createAirline(){
         );
 
         return;
+    }
+
+    /* Create a completely fresh game only after all setup choices are valid. */
+    if(!game){
+        game={
+            airlineName:"JaLa Airlines",
+            businessType:"passenger",
+            baseCountry:"Australia",
+            homeAirport:"MEL",
+            money:250000000,
+            day:1,
+            reputation:50,
+            passengers:0,
+            cargoTons:0,
+            totalRevenue:0,
+            totalCosts:0,
+            ticketPrice:180,
+            fuelPrice:1.20,
+            loan:{principal:0,balance:0,interest:0},
+            pendingOrders:[],
+            contracts:[],
+            achievements:{},
+            redeemedCodes:[],
+            tutorialCompleted:false,
+            lastDayRevenue:0,
+            lastDayCosts:0,
+            aircraft:[],
+            routes:[],
+            financeLog:[]
+        };
     }
 
     game.airlineName=name;
@@ -4089,6 +4095,14 @@ function populateRouteSelectors(){
     game.aircraft.forEach(
         (owned,index)=>{
 
+            /* An aircraft can only operate one route at a time. */
+            const alreadyAssigned=game.routes.some(
+                r=>String(r.aircraftId)===String(owned.id)
+            );
+
+            if(alreadyAssigned)
+                return;
+
             const data=
                 aircraftData.find(
                     a=>a.id===owned.type
@@ -4389,6 +4403,16 @@ function openRoute(){
             "Aircraft not found."
         );
 
+        return;
+    }
+
+    /* Prevent one aircraft from being assigned to multiple routes. */
+    if(game.routes.some(
+        r=>String(r.aircraftId)===String(owned.id)
+    )){
+        notify(
+            "That aircraft is already assigned to another route."
+        );
         return;
     }
 
@@ -5611,8 +5635,12 @@ function startGame(){
     if(typeof renderCountryOptions === "function")
         renderCountryOptions();
 
-    /* Default creation-screen country. */
-    if(typeof selectHomeCountry === "function")
+    /* Default creation-screen country, but NEVER overwrite a country
+       the player has already selected. */
+    if(
+        typeof selectHomeCountry === "function" &&
+        !document.getElementById("selectedCountry").value
+    )
         selectHomeCountry("Australia");
 
 }
@@ -5628,3 +5656,4 @@ startGame();
 
 </body>
 </html>
+
